@@ -1,5 +1,4 @@
 yueleiyuelei
-import python
 import socket
 if __name_yuelei__ == "__main__":
     pass
