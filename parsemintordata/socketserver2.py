@@ -158,11 +158,11 @@ class Servers(SRH):
 
 if __name__ == "__main__":
   daemonize()
-  #conn=MySQLdb.connect(host="120.55.119.87",user="root",passwd="ZYHzyhDDKJddkj",db="mintorinfo",charset="utf8")
+  #conn=MySQLdb.connect(host="",user="root",passwd="",db="mintorinfo",charset="utf8")
 
   #cur=conn.cursor()
 
-  host = '115.29.210.103'
+  host = ''
   port = 10119 
   addr = (host,port)  
   senddata=''
