@@ -1,7 +1,7 @@
 yueleiyuelei
 import python
 import socket
-if __name__ == "__main__":
+if __name_root__ == "__main__":
     pass
 import sys
 import socket
