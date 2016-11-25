@@ -36,7 +36,7 @@ class Mysql(object):
         @return MySQLdb.connection 
         """  
         if Mysql.__pool is None:  
-            __pool = PooledDB(creator=MySQLdb,mincached=1,maxcached=20,host='120.55.119.87',user='root', passwd='ZYHzyhDDKJddkj',db='mintorinfo',charset='utf8',cursorclass=DictCursor)  
+            __pool = PooledDB(creator=MySQLdb,mincached=1,maxcached=20,host='',user='root', passwd='',db='mintorinfo',charset='utf8',cursorclass=DictCursor)  
         return __pool.connection()  
    
     def getAll(self,sql,param=None):  
