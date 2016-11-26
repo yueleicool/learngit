@@ -21,11 +21,11 @@ def daemonize(stdin='/dev/null',stdout= '/dev/null', stderr= '/var/log/yueleierr
         sys.stderr.write("fork #1 failed: (%d) %s\n" %(e.errno, e.strerror))
         sys.exit(1)
  
-    #´ÓÄ¸Ìå»·¾³ÍÑÀë
+    #ä»æ¯ä½“ç¯å¢ƒè„±ç¦»
     os.chdir("/")
     os.umask(0)
     os.setsid()
-    #Ö´ĞĞµÚ¶ş´Îfork
+    #æ‰§è¡Œç¬¬äºŒæ¬¡fork
     try:
         pid = os.fork()
         if pid > 0:
@@ -34,7 +34,7 @@ def daemonize(stdin='/dev/null',stdout= '/dev/null', stderr= '/var/log/yueleierr
         sys.stderr.write("fork #2 failed: (%d) %s]n" %(e.errno,e.strerror))
         sys.exit(1)
  
-    #½ø³ÌÒÑ¾­ÊÇÊØ»¤½ø³ÌÁË£¬ÖØ¶¨Ïò±ê×¼ÎÄ¼şÃèÊö·û
+    #è¿›ç¨‹å·²ç»æ˜¯å®ˆæŠ¤è¿›ç¨‹äº†ï¼Œé‡å®šå‘æ ‡å‡†æ–‡ä»¶æè¿°ç¬¦
     for f in sys.stdout, sys.stderr: f.flush()
     si = file(stdin, 'r')
     so = file(stdout,'a+')
