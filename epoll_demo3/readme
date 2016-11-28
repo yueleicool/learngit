@@ -1,0 +1,10 @@
+http://www.cnblogs.com/ggjucheng/archive/2012/01/17/2324968.html
+Linux/Unix IO多路复用之poll网络编程(含源码)
+本章节是用基本的Linux/Unix基本函数加上poll调用编写一个完整的服务器和客户端例子，可在Linux(ubuntu)和Unix(freebsd)上运行，客户端和服务端的功能如下:
+
+客户端从标准输入读入一行，发送到服务端
+
+服务端从网络读取一行，然后输出到客户端
+
+客户端收到服务端的响应，输出这一行到标准输出
+
