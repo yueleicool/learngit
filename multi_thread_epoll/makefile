@@ -1,4 +1,4 @@
-NY:all  
+.PHONY:all
 all:server  
 server:  
 	gcc server.c -lpthread -o server  
