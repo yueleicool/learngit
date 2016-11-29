@@ -1,0 +1,240 @@
+http://blog.csdn.net/songfreeman/article/details/51179213
+I/O多路复用是在单线程模式下实现多线程的效果，实现一个多I/O并发的效果。
+看一个简单socket例子：
+import socket  
+  
+SOCKET_FAMILY = socket.AF_INET  
+SOCKET_TYPE = socket.SOCK_STREAM  
+  
+sockServer = socket.socket()  
+sockServer.bind(('0.0.0.0', 8888))  
+sockServer.listen(5)  
+  
+while True:  
+    cliobj, addr = sockServer.accept()  
+    while True:  
+        recvdata = cliobj.recv(1024)  
+        if recvdata:  
+            print(recvdata.decode())  
+        else:  
+            cliobj.close()  
+            break  
+
+
+客户端：
+import socket  
+  
+socCli = socket.socket()  
+socCli.connect(('127.0.0.1', 8888))  
+while True:  
+    data = input("input str:")  
+    socCli.send(data.encode())  
+
+以上为一个简单的客户端发送一个输入信息给服务端的socket通信的实例，在以上的例子中，服务端是一个单线程、阻塞模式的。如何实现多客户端连接呢，我们可以使用多线程模式，这个当然没有问题。 使用多线程、阻塞socket来处理的话，代码会很直观，但是也会有不少缺陷。它很难确保线程共享资源没有问题。而且这种编程风格的程序在只有一个CPU的电脑上面效率更低。但如果一个用户开启的线程有限的情况下，比如1024个。当第1025个客户端连接是仍然会阻塞。
+有没有一种比较好的方式呢，当然有，其一是使用异步socket。 这种socket只有在一些event触发时才会阻塞。相反，程序在异步socket上面执行一个动作，会立即被告知这个动作是否成功。程序会根据这个信 息决定怎么继续下面的操作由于异步socket是非阻塞的，就没有必要再来使用多线程。所有的工作都可以在一个线程中完成。这种单线程模式有它自己的挑 战，但可以成为很多方案不错的选择。它也可以结合多线程一起使用：单线程使用异步socket用于处理服务器的网络部分，多线程可以用来访问其他阻塞资 源，比如数据库。Linux的2.6内核有一系列机制来管理异 步socket，其中3个有对应的Python的API：select、poll和epoll。epoll和pool比select更好，因为 Python程序不需要检查每一个socket感兴趣的event。相反，它可以依赖操作系统来告诉它哪些socket可能有这些event。epoll 比pool更好，因为它不要求操作系统每次都去检查python程序需要的所有socket感兴趣的event。而是Linux在event发生的时候会 跟踪到，并在Python需要的时候返回一个列表。因此epoll对于大量（成千上万）并发socket连接，是更有效率和可扩展的机制
+异步I/O处理模型
+
+select最早于1983年出现在4.2BSD中，它通过一个select()系统调用来监视多个文件描述符的数组，当select()返回后，该数组中就绪的文件描述符便会被内核修改标志位，使得进程可以获得这些文件描述符从而进行后续的读写操作。
+select目前几乎在所有的平台上支持，其良好跨平台支持也是它的一个优点，事实上从现在看来，这也是它所剩不多的优点之一。
+select的一个缺点在于单个进程能够监视的文件描述符的数量存在最大限制，在Linux上一般为1024，不过可以通过修改宏定义甚至重新编译内核的方式提升这一限制。
+另外，select()所维护的存储大量文件描述符的数据结构，随着文件描述符数量的增大，其复制的开销也线性增长。同时，由于网络响应时间的延迟使得大量TCP连接处于非活跃状态，但调用select()会对所有socket进行一次线性扫描，所以这也浪费了一定的开销
+
+
+
+select  poll   epoll比较
+1 特点
+select  	select本质上是通过设置或者检查存放fd标志位的数据结构来进行下一步处理。这样所带来的缺点是：
+1 单个进程可监视的fd数量被限制
+2 需要维护一个用来存放大量fd的数据结构，这样会使得用户空间和内核空间在传递该结构时复制开销大
+3 对socket进行扫描时是线性扫描
+poll  	poll本质上和select没有区别，它将用户传入的数组拷贝到内核空间，然后查询每个fd对应的设备状态，如果设备就绪则在设备等待队列中加入一项并继续遍历，如果遍历完所有fd后没有发现就绪设备，则挂起当前进程，直到设备就绪或者主动超时，被唤醒后它又要再次遍历fd。这个过程经历了多次无谓的遍历。
+它没有最大连接数的限制，原因是它是基于链表来存储的，但是同样有一个缺点：
+大量的fd的数组被整体复制于用户态和内核地址空间之间，而不管这样的复制是不是有意义。
+poll还有一个特点是“水平触发”，如果报告了fd后，没有被处理，那么下次poll时会再次报告该fd。
+epoll  	epoll支持水平触发和边缘触发，最大的特点在于边缘触发，它只告诉进程哪些fd刚刚变为就需态，并且只会通知一次。
+在前面说到的复制问题上，epoll使用mmap减少复制开销。
+还有一个特点是，epoll使用“事件”的就绪通知方式，通过epoll_ctl注册fd，一旦该fd就绪，内核就会采用类似callback的回调机制来激活该
+fd，epoll_wait便可以收到通知
+2 支持一个进程所能打开的最大连接数
+select  	单个进程所能打开的最大连接数有FD_SETSIZE宏定义，其大小是32个整数的大小（在32位的机器上，大小就是32*32，同理64位机器上FD_SETSIZE为32*64），当然我们可以对进行修改，然后重新编译内核，但是性能可能会受到影响，这需要进一步的测试。
+poll  	poll本质上和select没有区别，但是它没有最大连接数的限制，原因是它是基于链表来存储的
+epoll  	虽然连接数有上限，但是很大，1G内存的机器上可以打开10万左右的连接，2G内存的机器可以打开20万左右的连接
+3 FD剧增后带来的IO效率问题
+select  	因为每次调用时都会对连接进行线性遍历，所以随着FD的增加会造成遍历速度慢的“线性下降性能问题”。
+poll  	同上
+epoll  	因为epoll内核中实现是根据每个fd上的callback函数来实现的，只有活跃的socket才会主动调用callback，所以在活跃socket较少的情况下，使用epoll没有前面两者的线性下降的性能问题，但是所有socket都很活跃的情况下，可能会有性能问题。
+4 消息传递方式
+select  	内核需要将消息传递到用户空间，都需要内核拷贝动作。
+poll  	同上
+epoll  	epoll通过内核和用户空间共享一块内存来实现的。
+
+下面我们对上面的socket例子进行改造，看一下select的例子：
+
+elect 详细解释，用线程的IO多路复用实现一个读写分离的、支持多客户端的连接请求  
+"""  
+import socket  
+import queue  
+from select import select  
+  
+SERVER_IP = ('127.0.0.1', 9999)  
+  
+# 保存客户端发送过来的消息,将消息放入队列中  
+message_queue = {}  
+input_list = []  
+output_list = []  
+  
+if __name__ == "__main__":  
+    server = socket.socket()  
+    server.bind(SERVER_IP)  
+    server.listen(10)  
+    # 设置为非阻塞  
+    server.setblocking(False)  
+  
+    # 初始化将服务端加入监听列表  
+    input_list.append(server)  
+  
+    while True:  
+        # 开始 select 监听,对input_list中的服务端server进行监听  
+        stdinput, stdoutput, stderr = select(input_list, output_list, input_list)  
+  
+        # 循环判断是否有客户端连接进来,当有客户端连接进来时select将触发  
+        for obj in stdinput:  
+            # 判断当前触发的是不是服务端对象, 当触发的对象是服务端对象时,说明有新客户端连接进来了  
+            if obj == server:  
+                # 接收客户端的连接, 获取客户端对象和客户端地址信息  
+                conn, addr = server.accept()  
+                print("Client {0} connected! ".format(addr))  
+                # 将客户端对象也加入到监听的列表中, 当客户端发送消息时 select 将触发  
+                input_list.append(conn)  
+                # 为连接的客户端单独创建一个消息队列，用来保存客户端发送的消息  
+                message_queue[conn] = queue.Queue()  
+  
+            else:  
+                # 由于客户端连接进来时服务端接收客户端连接请求，将客户端加入到了监听列表中(input_list)，客户端发送消息将触发  
+                # 所以判断是否是客户端对象触发  
+                try:  
+                    recv_data = obj.recv(1024)  
+                    # 客户端未断开  
+                    if recv_data:  
+                        print("received {0} from client {1}".format(recv_data.decode(), addr))  
+                        # 将收到的消息放入到各客户端的消息队列中  
+                        message_queue[obj].put(recv_data)  
+  
+                        # 将回复操作放到output列表中，让select监听  
+                        if obj not in output_list:  
+                            output_list.append(obj)  
+  
+                except ConnectionResetError:  
+                    # 客户端断开连接了，将客户端的监听从input列表中移除  
+                    input_list.remove(obj)  
+                    # 移除客户端对象的消息队列  
+                    del message_queue[obj]  
+                    print("\n[input] Client  {0} disconnected".format(addr))  
+  
+        # 如果现在没有客户端请求,也没有客户端发送消息时，开始对发送消息列表进行处理，是否需要发送消息  
+        for sendobj in output_list:  
+            try:  
+                # 如果消息队列中有消息,从消息队列中获取要发送的消息  
+                if not message_queue[sendobj].empty():  
+                    # 从该客户端对象的消息队列中获取要发送的消息  
+                    send_data = message_queue[sendobj].get()  
+                    sendobj.sendall(send_data)  
+                else:  
+                    # 将监听移除等待下一次客户端发送消息  
+                    output_list.remove(sendobj)  
+  
+            except ConnectionResetError:  
+                # 客户端连接断开了  
+                del message_queue[sendobj]  
+                output_list.remove(sendobj)  
+                print("\n[output] Client  {0} disconnected".format(addr)) 
+
+
+
+epoll实现实例
+
+#!/usr/bin/env python  
+import select  
+import socket  
+  
+response = b''  
+  
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+serversocket.bind(('0.0.0.0', 8080))  
+serversocket.listen(1)  
+# 因为socket默认是阻塞的，所以需要使用非阻塞（异步）模式。  
+serversocket.setblocking(0)  
+  
+# 创建一个epoll对象  
+epoll = select.epoll()  
+# 在服务端socket上面注册对读event的关注。一个读event随时会触发服务端socket去接收一个socket连接  
+epoll.register(serversocket.fileno(), select.EPOLLIN)  
+  
+try:  
+    # 字典connections映射文件描述符（整数）到其相应的网络连接对象  
+    connections = {}  
+    requests = {}  
+    responses = {}  
+    while True:  
+        # 查询epoll对象，看是否有任何关注的event被触发。参数“1”表示，我们会等待1秒来看是否有event发生。  
+        # 如果有任何我们感兴趣的event发生在这次查询之前，这个查询就会带着这些event的列表立即返回  
+        events = epoll.poll(1)  
+        # event作为一个序列（fileno，event code）的元组返回。fileno是文件描述符的代名词，始终是一个整数。  
+        for fileno, event in events:  
+            # 如果是服务端产生event,表示有一个新的连接进来  
+            if fileno == serversocket.fileno():  
+                connection, address = serversocket.accept()  
+                print('client connected:', address)  
+                # 设置新的socket为非阻塞模式  
+                connection.setblocking(0)  
+                # 为新的socket注册对读（EPOLLIN）event的关注  
+                epoll.register(connection.fileno(), select.EPOLLIN)  
+                connections[connection.fileno()] = connection  
+                # 初始化接收的数据  
+                requests[connection.fileno()] = b''  
+  
+            # 如果发生一个读event，就读取从客户端发送过来的新数据  
+            elif event & select.EPOLLIN:  
+                print("------recvdata---------")  
+                # 接收客户端发送过来的数据  
+                requests[fileno] += connections[fileno].recv(1024)  
+                # 如果客户端退出,关闭客户端连接，取消所有的读和写监听  
+                if not requests[fileno]:  
+                    connections[fileno].close()  
+                    # 删除connections字典中的监听对象  
+                    del connections[fileno]  
+                    # 删除接收数据字典对应的句柄对象  
+                    del requests[connections[fileno]]  
+                    print(connections, requests)  
+                    epoll.modify(fileno, 0)  
+                else:  
+                    # 一旦完成请求已收到，就注销对读event的关注，注册对写（EPOLLOUT）event的关注。写event发生的时候，会回复数据给客户端  
+                    epoll.modify(fileno, select.EPOLLOUT)  
+                    # 打印完整的请求，证明虽然与客户端的通信是交错进行的，但数据可以作为一个整体来组装和处理  
+                    print('-' * 40 + '\n' + requests[fileno].decode())  
+  
+            # 如果一个写event在一个客户端socket上面发生，它会接受新的数据以便发送到客户端  
+            elif event & select.EPOLLOUT:  
+                print("-------send data---------")  
+                # 每次发送一部分响应数据，直到完整的响应数据都已经发送给操作系统等待传输给客户端  
+                byteswritten = connections[fileno].send(requests[fileno])  
+                requests[fileno] = requests[fileno][byteswritten:]  
+                if len(requests[fileno]) == 0:  
+                    # 一旦完整的响应数据发送完成，就不再关注写event  
+                    epoll.modify(fileno, select.EPOLLIN)  
+  
+            # HUP（挂起）event表明客户端socket已经断开（即关闭），所以服务端也需要关闭。  
+            # 没有必要注册对HUP event的关注。在socket上面，它们总是会被epoll对象注册  
+            elif event & select.EPOLLHUP:  
+                print("end hup------")  
+                # 注销对此socket连接的关注  
+                epoll.unregister(fileno)  
+                # 关闭socket连接  
+                connections[fileno].close()  
+                del connections[fileno]  
+finally:  
+    # 打开的socket连接不需要关闭，因为Python会在程序结束的时候关闭。这里显式关闭是一个好的代码习惯  
+    epoll.unregister(serversocket.fileno())  
+    epoll.close()  
+    serversocket.close()  
+
