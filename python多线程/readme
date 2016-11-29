@@ -1,0 +1,13 @@
+http://blog.itpub.net/22664653/viewspace-1178285/
+【Python】python 多线程两种实现方式 
+目前python 提供了几种多线程实现方式 thread，threading，multithreading ,其中thread模块比较底层，而threading模块是对thread做了一些包装，可以更加方便的被使用。
+2.7版本之前python对线程的支持还不够完善，不能利用多核CPU，但是2.7版本的python中已经考虑改进这点，出现了multithreading  模块。threading模块里面主要是对一些线程的操作对象化，创建Thread的class。一般来说，使用线程有两种模式:
+A 创建线程要执行的函数，把这个函数传递进Thread对象里，让它来执行；
+B 继承Thread类，创建一个新的class，将要执行的代码 写到run函数里面。
+
+本文介绍两种实现方法。
+第一种 创建函数并且传入Thread 对象中
+t.py 脚本内容
+
+thclass.py 脚本内容：
+
