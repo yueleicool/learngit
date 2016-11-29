@@ -1,0 +1,16 @@
+http://www.jb51.net/article/56979.htm
+python多线程threading.Lock锁用法实例
+本文实例讲述了python多线程threading.Lock锁的用法实例，分享给大家供大家参考。具体分析如下：
+python的锁可以独立提取出来
+mutex = threading.Lock()
+#锁的使用
+#创建锁
+mutex = threading.Lock()
+#锁定
+mutex.acquire([timeout])
+#释放
+mutex.release()
+
+锁定方法acquire可以有一个超时时间的可选参数timeout。如果设定了timeout，则在超时后通过返回值可以判断是否得到了锁，从而可以进行一些其他的处理。
+
+
