@@ -1,0 +1,111 @@
+python多线程中锁的概念
+http://www.cnblogs.com/alan-babyblog/p/5335035.html
+
+python的锁可以独立提取出来
+mutex = threading.Lock()
+#锁的使用
+#创建锁
+mutex = threading.Lock()
+#锁定
+mutex.acquire([timeout])
+#释放
+mutex.release()
+
+概念
+
+好几个人问我给资源加锁是怎么回事，其实并不是给资源加锁, 而是用锁去锁定资源，你可以定义多个锁, 像下面的代码, 当你需要独占某一资源时，任何一个锁都可以锁这个资源
+
+就好比你用不同的锁都可以把相同的一个门锁住是一个道理
+
+import  threading   
+import  time   
+      
+counter = 0 
+counter_lock = threading.Lock() #只是定义一个锁,并不是给资源加锁,你可以定义多个锁,像下两行代码,当你需要占用这个资源时，任何一个锁都可以锁这个资源 
+counter_lock2 = threading.Lock()  
+counter_lock3 = threading.Lock() 
+   
+#可以使用上边三个锁的任何一个来锁定资源 
+    
+class  MyThread(threading.Thread):#使用类定义thread，继承threading.Thread 
+     def  __init__(self,name):   
+        threading.Thread.__init__(self)   
+        self.name = "Thread-" + str(name) 
+     def run(self):   #run函数必须实现 
+         global counter,counter_lock #多线程是共享资源的，使用全局变量 
+         time.sleep(1);   
+         if counter_lock.acquire(): #当需要独占counter资源时，必须先锁定，这个锁可以是任意的一个锁，可以使用上边定义的3个锁中的任意一个 
+            counter += 1    
+            print "I am %s, set counter:%s"  % (self.name,counter)   
+            counter_lock.release() #使用完counter资源必须要将这个锁打开，让其他线程使用 
+               
+if  __name__ ==  "__main__":   
+    for i in xrange(1,101):   
+        my_thread = MyThread(i) 
+        my_thread.start()
+
+
+线程不安全:
+
+最普通的一个多线程小例子。我一笔带过地讲一讲，我创建了一个继承Thread类的子类MyThread，作为我们的线程启动类。按照规定，重写Thread的run方法，我们的线程启动起来后会自动调用该方法。于是我首先创建了10个线程，并将其加入列表中。再使用一个for循环，开启每个线程。在使用一个for循环，调用join方法等待所有线程结束才退出主线程。
+
+这段代码看似简单，但实际上隐藏着一个很大的问题，只是在这里没有体现出来。你真的以为我创建了10个线程，并按顺序调用了这10个线程，每个线程为n增加了1.实际上，有可能是A线程执行了n++，再C线程执行了n++，再B线程执行n++。
+
+这里涉及到一个“锁”的问题，如果有多个线程同时操作一个对象，如果没有很好地保护该对象，会造成程序结果的不可预期（比如我们在每个线程的run方法中加入一个time.sleep(1)，并同时输出线程名称，则我们会发现，输出会乱七八糟。因为可能我们的一个print语句只打印出一半的字符，这个线程就被暂停，执行另一个去了，所以我们看到的结果很乱），这种现象叫做“线程不安全”
+
+ 
+
+线程锁：
+
+于是，Threading模块为我们提供了一个类，Threading.Lock，锁。我们创建一个该类对象，在线程函数执行前，“抢占”该锁，执行完成后，“释放”该锁，则我们确保了每次只有一个线程占有该锁。这时候对一个公共的对象进行操作，则不会发生线程不安全的现象了。
+
+于是，我们把代码更改如下：
+
+# coding : uft-8
+__author__ = 'Phtih0n'
+import threading, time
+class MyThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    def run(self):
+        global n, lock
+        time.sleep(1)
+        if lock.acquire():
+            print n , self.name
+            n += 1
+            lock.release()
+if "__main__" == __name__:
+    n = 1
+    ThreadList = []
+    lock = threading.Lock()
+    for i in range(1, 200):
+        t = MyThread()
+        ThreadList.append(t)
+    for t in ThreadList:
+        t.start()
+    for t in ThreadList:
+        t.join()
+
+
+1 Thread-2
+2 Thread-3
+3 Thread-4
+4 Thread-6
+5 Thread-7
+6 Thread-1
+7 Thread-8
+8 Thread-9
+9 Thread-5
+ 
+Process finished with exit code 0
+
+我们看到，我们先建立了一个threading.Lock类对象lock,在run方法里，我们使用lock.acquire()获得了这个锁。此时，其他的线程就无法再获得该锁了，他们就会阻塞在“if lock.acquire()”这里，直到锁被另一个线程释放：lock.release()。
+
+所以，if语句中的内容就是一块完整的代码，不会再存在执行了一半就暂停去执行别的线程的情况。所以最后结果是整齐的。
+
+就如同在java中，我们使用synchronized关键字修饰一个方法，目的一样，让某段代码被一个线程执行时，不会打断跳到另一个线程中。
+
+这是多线程占用一个公共对象时候的情况。如果多个线程要调用多个现象，而A线程调用A锁占用了A对象，B线程调用了B锁占用了B对象,A线程不能调用B对象，B线程不能调用A对象，于是一直等待。这就造成了线程“死锁”。
+
+Threading模块中，也有一个类，RLock，称之为可重入锁。该锁对象内部维护着一个Lock和一个counter对象。counter对象记录了acquire的次数，使得资源可以被多次require。最后，当所有RLock被release后，其他线程才能获取资源。在同一个线程中，RLock.acquire可以被多次调用，利用该特性，可以解决部分死锁问题。
+
