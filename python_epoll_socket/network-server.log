@@ -1,0 +1,24 @@
+2016-11-28 20:12:17,973 - network-server - DEBUG - accept connection from 10.0.2.15, 53336, fd = 6
+2016-11-28 20:12:17,973 - network-server - DEBUG - 6 receive The Number is 1
+2016-11-28 20:12:18,976 - network-server - DEBUG - 6 receive The Number is 2
+2016-11-28 20:12:19,983 - network-server - DEBUG - 6 receive The Number is 3
+2016-11-28 20:12:20,986 - network-server - DEBUG - 6 receive The Number is 4
+2016-11-28 20:12:21,988 - network-server - DEBUG - 6 receive The Number is 5
+2016-11-28 20:12:22,992 - network-server - DEBUG - 6 receive The Number is 6
+2016-11-28 20:12:23,996 - network-server - DEBUG - 6 receive The Number is 7
+2016-11-28 20:12:24,999 - network-server - DEBUG - 6 receive The Number is 8
+2016-11-28 20:12:26,003 - network-server - DEBUG - 6 receive The Number is 9
+2016-11-28 20:12:27,006 - network-server - DEBUG - 6 receive The Number is 10
+2016-11-28 20:12:28,011 - network-server - DEBUG - 10.0.2.15, 53336 closed
+2016-11-28 20:12:42,803 - network-server - DEBUG - accept connection from 10.0.2.15, 53337, fd = 6
+2016-11-28 20:12:42,804 - network-server - DEBUG - 6 receive The Number is 1
+2016-11-28 20:12:43,807 - network-server - DEBUG - 6 receive The Number is 2
+2016-11-28 20:12:44,812 - network-server - DEBUG - 6 receive The Number is 3
+2016-11-28 20:12:45,816 - network-server - DEBUG - 6 receive The Number is 4
+2016-11-28 20:12:46,821 - network-server - DEBUG - 6 receive The Number is 5
+2016-11-28 20:12:47,825 - network-server - DEBUG - 6 receive The Number is 6
+2016-11-28 20:12:48,832 - network-server - DEBUG - 6 receive The Number is 7
+2016-11-28 20:12:49,836 - network-server - DEBUG - 6 receive The Number is 8
+2016-11-28 20:12:50,839 - network-server - DEBUG - 6 receive The Number is 9
+2016-11-28 20:12:51,845 - network-server - DEBUG - 6 receive The Number is 10
+2016-11-28 20:12:52,857 - network-server - DEBUG - 10.0.2.15, 53337 closed
