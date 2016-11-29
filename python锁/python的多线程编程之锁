@@ -1,0 +1,131 @@
+python的多线程编程之锁
+http://www.cnblogs.com/kellyseeme/p/5525017.html
+
+1、 背景概述
+
+在上篇文章中，主要讲述了python中的socket编程的一些基本方面，但是缺少关于锁的相关概念，从而在这篇文章中进行补充。
+
+
+由于在python中，存在了GIL，也就是全局解释器锁，从而在每次进行获得cpu的时候，同时只有一个线程获得了cpu的运行，在这个方面可以认为是线程安全的，但是在线程运行的时候，是共享内存的，共享相同的数据信息，从而这个时候python的线程就不那么安全了。
+
+
+在python中，要保证数据的正确性，并且自己对数据进行控制，对数据进行加锁并且自己释放锁。
+
+
+多线程的主要目的为了提高性能与速度，用在无关的方向是最好的，例如在使用爬虫的时候，可以使用多线程来进行爬取数据，因为在这些线程之间没有需要共同操作的数据，从而在这个时候利用是最好的。
+
+
+如果需要操作同一份数据，那么必须自己保证数据的安全性。
+
+
+如果需要利用多cpu的特性，那么应该使用的是多进程编程，而不是多线程编程，多进程编程为multiprocessing。
+
+
+2、 利用锁进行同步相同的数据
+
+直接看以下的代码：
+
+#!/usr/bin/env python  
+import time  
+import threading  
+  
+num = 0  
+class MyThread(threading.Thread):  
+    def run(self):  
+        #lock.acquire()  
+        #time.sleep(1)  
+        global num  
+        num += 1  
+        print self.name + 'set num to '+str(num)  
+        #lock.release()  
+  
+#lock = threading.RLock()  
+threads = []  
+for i in range(10000):  
+    t = MyThread()  
+    threads.append(t)  
+for i in range(10000):  
+    threads[i].start()  
+for i in range(10000):  
+    threads[i].join()  
+
+ 看以上的代码，对全局变量进行一个修改，从而每个线程取到的是同一份的数据，从而，可能造成数据的计算结果不正确，从而需要用锁进行控制数据的正确性。
+
+PS：在我的机器上进行运行的时候，都是正确的，从而看起来好像不用锁也可以，但是在有的机器上进行模拟的时候，最后的计算结果不正确。
+
+
+在使用锁的时候，只要将注释的代码进行去掉即可使用锁。
+
+3、 锁的类型
+
+在python的threading模块中，提供了三种锁，如下所示：
+
+Threading模块中的锁
+Threading.Lock基本锁
+Threading.Rlock在锁里又可以获得锁
+Threading.BoundedSemaphore可以设置同时几个线程
+在进行锁的操作的时候，必须在每个线程中，自己获取锁，然后自己释放锁，否则会造成一直在等待，也可以称之为死锁。
+
+一个线程
+获取锁acquire -------> 释放锁release
+
+4、 事件
+
+在进行多线程的时候，可以判断一个事件发生，然后触发做另外的事情，从而可以使用event，如下代码所示：
+
+[root@python 523]# cat thread_demo.py   
+#!/usr/bin/env python  
+  
+import threading  
+import time  
+import Queue  
+  
+def producter(name,queue,lock):  
+    event.clear()  
+    print '%s start to product...' % name  
+    queue.put('something')  
+    time.sleep(3)  
+    print 'product something'  
+    event.set()  
+    event.wait()  
+  
+def consumer(name,queue,lock):  
+    print '%s start to consume...' % name  
+    event.wait()  
+    queue.get()  
+    print 'consume something'  
+    event.set()  
+  
+  
+lock = threading.Lock()  
+queue = Queue.Queue(10)  
+event = threading.Event()  
+threads = []  
+threadsc = []  
+for i in range(1):  
+    t = threading.Thread(target=producter,args=('kel%s' % i,queue,lock))  
+    threads.append(t)  
+for i in range(1):  
+    threads[i].start()  
+for i in range(1):  
+    t = threading.Thread(target=consumer,args=('smile%s' % i,queue,lock))  
+    threadsc.append(t)  
+for i in range(1):  
+    threadsc[i].start()  
+
+
+在使用event的时候，clear表示将flag设置为false，set表示设置为true，wait表示在false的时候，一直等待，从而当producter没有数据的时候，consumer一直在等待。
+
+
+Producter -----> 做好了event.set
+Consumer  -----> 等待event.wait -----> 清除event.clear
+
+这种可以做事件的触发。
+
+问题：
+
+在进行此实验的时候，如果线程出现错误，那么是无法关闭的，从而只有杀掉进程才可以，从而可以使用命令如下：
+
+killall python  
+
+杀掉进程的同时杀掉线程。（可以杀死进程，但是线程是无法杀掉的）
