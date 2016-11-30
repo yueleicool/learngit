@@ -1,0 +1,6 @@
+dup,dup2用法
+http://tcspecial.iteye.com/blog/2159781
+dup，dup2，dup3是linux下非常重要的函数，用来实现流的重定向，可以很方便实现一些很有趣的效果。
+   原理：每个进程在内核中有相应的fd记录表，每个fd占用一项。调用dup()后，新产生的newfd与原oldfd指向同一内核文件表项，操作newfd与操作oldfd效果一样，比较常用的应用就是CGI编程。
+   详细描述见：http://www.cnblogs.com/GODYCA/archive/2013/01/05/2846197.html
+
