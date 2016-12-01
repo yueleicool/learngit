@@ -1,0 +1,9 @@
+linux下libpcap开发例子
+http://myfuture.blog.51cto.com/689516/1035665
+
+实现功能：抓取分析TCP包
+编译方法：
+#gcc -c main.c tcp.c ip.c ether.c
+#gcc -g -Wall -o main main.o ip.o tcp.o ether.o -lpcap
+运行方法：
+#./main eth2
