@@ -1,0 +1,97 @@
+gcc 动态编译 动态库路径
+http://www.cnblogs.com/dongzhiquan/p/4055545.html
+
+gcc 动态编译(共享库) 动态编译的可执行文件需要附带一个的动态链接库，在执行时，需要调用其对应动态链接库中的命令
+优点：体积小，编译快
+缺点：依赖性高
+
+代码如下:
+
+[root@74-82-173-217 shared]# cat add.c
+int add (int x, int y) {
+return x + y;
+}
+
+Parsed in 0.007 seconds at 12.13 KB/s
+add.c 求和函数
+
+代码如下:
+
+[root@74-82-173-217 shared]# cat print.c
+#include <stdio.h>
+void print (int x) {
+printf ("%d\n",x);
+}
+
+Parsed in 0.007 seconds at 14.78 KB/s
+print 打印函数
+
+
+代码如下:
+
+[root@74-82-173-217 shared]# cat head.h
+#ifndf HEAD_H
+#define HEAD_H
+int add (int ,int);
+void print (int);
+#endif
+
+Parsed in 0.007 seconds at 16.34 KB/s
+head.h 声明头文件
+
+代码如下:
+
+[root@74-82-173-217 shared]# cat main.c
+#include <stdio.h>
+#include "head.h"
+int main () {
+int x = add(3, 5);
+print(x);
+}
+
+Parsed in 0.007 seconds at 19.70 KB/s
+main.c 主函数
+
+1、编译动态库
+[root@74-82-173-217 shared]# gcc -fpic -shared add.c print.c -o libd.so
+使用 -fpic -shared 参数生成 libd.so 动态库
+
+2、生成执行文件
+[root@74-82-173-217 shared]# gcc main.c libd.so -o main
+加载动态库，生成main执行文件
+
+3、动态库加载
+[root@74-82-173-217 shared]# ./main
+./main: error while loading shared libraries: libd.so: cannot open shared object file: No such file or directory
+因为我们是以动态库编译，执行main时由于找不到 libd.so 库导致执行失败，可以使用 ldd main来查看 libd.so未找到
+
+
+代码如下:
+
+[root@74-82-173-217 shared]# ldd main
+linux-gate.so.1 => (0x0070c000)
+libd.so => not found
+libc.so.6 => /lib/i686/nosegneg/libc.so.6 (0x0050e000)
+/lib/ld-linux.so.2 (0x00ea6000)
+
+Parsed in 0.000 seconds at 434.42 KB/s
+解决此问题有三种方法，
+1、把动态库路径添加到环境变量中
+[root@74-82-173-217 shared]# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/c/shared/
+
+2、把动态库路径添加到 ld.so.conf中
+[root@74-82-173-217 shared]# echo "/root/c/shared" >> /etc/ld.so.conf
+[root@74-82-173-217 shared]# ldconfig
+重新搜索所有动态库，并更新到 /etc/ld.so.cache
+[root@74-82-173-217 shared]# ldconfig -v|grep libd.so
+查找当前是否包含 libd.so 库
+
+3、直接复制到系统目录下
+[root@74-82-173-217 shared]# cp libd.so /lib/
+
+gcc参数
+-shared:
+该选项指定生成动态连接库（让连接器生成T类型的导出符号表，有时候也生成弱连接W类型的导出符号），不用该标志外部程序无法连接。相当于一个可执行文件
+
+-fpic:
+表示编译为位置独立的代码，不用此选项的话编译后的代码是位置相关的所以动态载入时是通过代码拷贝的方式来满足不同进程的需要，而不能达到真正代码段共享的目的。 
