@@ -1,0 +1,1325 @@
+libnet入门
+http://blog.csdn.net/firstime_tzjz/article/details/8575304
+
+在Unix系统平台上的网络安全工具开发中，目前最为流行的C API library有libnet、libpcap、libnids和libicmp等。它们分别从不同层次和角度提供了不同的功能函数。使网络开发人员能够忽略网络底层细节的实现，从而专注于程序本身具体功能的设计与开发。其中，
+* libnet提供的接口函数主要实现和封装了数据包的构造和发送过程。 
+* libpcap提供的接口函数主要实现和封装了与数据包截获有关的过程。 
+* libnids提供的接口函数主要实现了开发网络入侵监测系统所必须的一些结构框架。 
+* libicmp等相对较为简单，它封装的是ICMP数据包的主要处理过程(构造、发送、接收等)。 利用这些C函数库的接口，网络安全工具开发人员可以很方便地编写出具有结构化强、健壮性好、可移植性高等特点的程序，如scanner、sniffer、firewall、IDS等。
+---[[ libnet ]]------------------------------------------ 
+libnet库的最新版本为1.0.0，它一共约7600行C源代码，33个源程序文件，12个C头文件，50余个自定义函数，提供的接口函数包含15种数据包生成器和两种数据包发送器(IP层和数据链路层)。目前只支持IPv4，不支持IPv6。已经过测试的系统平台包括：
+* OpenBSD 2.6snap, 2.5, 2.4, 2.3, 2.2 (i386) 
+* FreeBSD 4.0-STABLE, 3.3-STABLE, 3.2-RELEASE, 3.1-CURRENT, 3.0, 2.2 (i386) 
+* NetBSD 1.3.2 (i386) 
+* BSD/OS 3.x (i386) 
+* BSDi 3.0 (i386) 
+* Linux 2.2.x, 2.0.3x, 2.1.124 (i386, alpha) (libc: 2.4.x, glibc: 2.0.x) 
+* Solaris 7 (SPARC, gcc 2.7.2[13], 2.8.2), 2.6 (SPARC, gcc 2.8.2), 
+2.5.x (SPARC, gcc 2.7.2[13]) 
+* IRIX 6.2 
+* MacOS 5.3rhapsody (powerpc) 
+libnet提供的接口函数按其作用可分为四类：
+
+* 内存管理(分配和释放)函数
+* 地址解析函数
+* 数据包构造函数
+* 数据包发送函数
+
+以下分别列出这些接口函数及其功能(其参数含义简单易懂，不再解释)：
+
+
+★ 内存管理函数
+
+单数据包内存初始化：
+int libnet_init_packet(u_short packet_size, u_char **buf);
+
+单数据包内存释放：
+void libnet_destroy_packet(u_char **buf);
+
+多数据包内存初始化：
+int libnet_init_packet_arena(struct libnet_arena **arena, 
+u_short packet_num, u_short packet_size);
+
+访问多数据包内存中的下一个数据包：
+u_char *libnet_next_packet_from_arena(struct libnet_arena **arena, 
+u_short packet_size);
+
+多数据包内存释放：
+void libnet_destroy_packet_arena(struct libnet_arena **arena);
+
+
+★ 地址解析函数
+
+解析主机名：
+u_char *libnet_host_lookup(u_long ip, u_short use_name);
+
+解析主机名(可重入函数)： 
+void libnet_host_lookup_r(u_long ip, u_short use_name, u_char *buf);
+
+域名解析：
+u_long libnet_name_resolve(u_char *ip, u_short use_name);
+
+获取接口设备IP地址：
+u_long libnet_get_ipaddr(struct libnet_link_int *l, 
+const u_char *device, const u_char *ebuf);
+
+获取接口设备硬件地址：
+struct ether_addr *libnet_get_hwaddr(struct libnet_link_int *l, 
+const u_char *device, 
+const u_char *ebuf);
+
+
+★ 数据包构造函数
+
+ARP协议数据包：
+int libnet_build_arp(u_short hrdw, u_short prot, u_short h_len,
+u_short p_len, u_short op, u_char *s_ha,
+u_char *s_pa, u_char *t_ha, u_char *t_pa,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+DNS协议数据包：
+int libnet_build_dns(u_short id, u_short flags, u_short num_q,
+u_short num_answ_rr, u_short num_auth_rr,
+u_short num_add_rr, const u_char * payload,
+int payload_len, u_char *packet_buf);
+
+以太网协议数据包：
+int libnet_build_ethernet(u_char *daddr, u_char *saddr, u_short id,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+ICMP协议数据包(ICMP_ECHO / ICMP_ECHOREPLY)：
+int libnet_build_icmp_echo(u_char type, u_char code, u_short id,
+u_short seq, const u_char *payload,
+int payload_len, u_char *packet_buf);
+
+ICMP协议数据包(ICMP_MASKREQ / ICMP_MASKREPLY)：
+int libnet_build_icmp_mask(u_char type, u_char code, u_short id,
+u_short seq, u_long mask,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+ICMP协议数据包(ICMP_UNREACH)：
+int libnet_build_icmp_unreach(u_char type, u_char code,
+u_short orig_len, u_char orig_tos,
+u_short orig_id, u_short orig_frag,
+u_char orig_ttl, u_char orig_prot,
+u_long orig_saddr, u_long orig_daddr,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+ICMP协议数据包(ICMP_TIMEXCEED)：
+int libnet_build_icmp_timeexceed(u_char type, u_char code,
+u_short orig_len, u_char orig_tos,
+u_short orig_id, u_short orig_frag,
+u_char orig_ttl, u_char orig_prot,
+u_long orig_saddr, u_long orig_daddr,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+ICMP协议数据包(ICMP_REDIRECT)：
+int libnet_build_icmp_redirect(u_char type, u_char code, u_long gateway,
+u_short orig_len, u_char orig_tos,
+u_short orig_id, u_short orig_frag,
+u_char orig_ttl, u_char orig_prot,
+u_long orig_saddr, u_long orig_daddr,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+ICMP协议数据包(ICMP_TSTAMP / ICMP_TSTAMPREPLY)：
+int libnet_build_icmp_timestamp(u_char type, u_char code, u_short id,
+u_short seq, n_time otime, n_time rtime,
+n_time ttime, const u_char *payload,
+int payload_len, u_char *packet_buf);
+
+IGMP协议数据包：
+int libnet_build_igmp(u_char type, u_char code, u_long ip,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+IP协议数据包：
+int libnet_build_ip(u_short len, u_char tos, u_short ip_id, u_short frag,
+u_char ttl, u_char protocol, u_long saddr,
+u_long daddr, const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+OSPF路由协议数据包：
+int libnet_build_ospf(u_short len, u_char type, u_long router_id,
+u_long area_id, u_short auth_type,
+const char *payload, int payload_s, u_char *buf);
+
+OSPF路由协议数据包(Hello)：
+int libnet_build_ospf_hello(u_long netmask, u_short interval,
+u_char options, u_char priority,
+u_int dead_interval, u_long des_router,
+u_long backup, u_long neighbor,
+const char *payload, int payload_s,
+u_char *buf);
+
+OSPF路由协议数据包(DataBase Description (DBD))：
+int libnet_build_ospf_dbd(u_short len, u_char options, u_char type,
+u_int sequence_num, const char *payload,
+int payload_s, u_char *buf);
+
+OSPF路由协议数据包(Link State Request (LSR))：
+int libnet_build_ospf_lsr(u_int type, u_int ls_id, u_long adv_router,
+const char *payload, int payload_s,
+u_char *buf);
+
+OSPF路由协议数据包(Link State Update (LSU))：
+int libnet_build_ospf_lsu(u_int num, const char *payload,
+int payload_s, u_char *buf);
+
+OSPF路由协议数据包(Link State Acknowledgement (LSA))：
+int libnet_build_ospf_lsa(u_short age, u_char options, u_char type,
+u_int ls_id, u_long adv_router,
+u_int sequence_num, u_short len,
+const char *payload, int payload_s,
+u_char *buf);
+
+OSPF路由协议数据包(OSPF Link Sate NetworkLink State Router)：
+int libnet_build_ospf_lsa_net(u_long netmask, u_int router_id,
+const char *payload, int payload_s,
+u_char *buf);
+
+OSPF路由协议数据包(Link State Router)：
+int libnet_build_ospf_lsa_rtr(u_short flags, u_short num, u_int id,
+u_int data, u_char type, u_char tos,
+u_short metric, const char *payload,
+int payload_s, u_char *buf);
+
+OSPF路由协议数据包(Link State Summary)：
+int libnet_build_ospf_lsa_sum(u_long netmask, u_int metric, u_int tos,
+const char *payload, int payload_s,
+u_char *buf);
+
+OSPF路由协议数据包(Link State AS External)：
+int libnet_build_ospf_lsa_as(u_long netmask, u_int metric,
+u_long fwd_addr, u_int tag,
+const char *payload, int payload_s,
+u_char *buf);
+
+RIP路由协议数据包：
+int libnet_build_rip(u_char cmd, u_char ver, u_short domain,
+u_short addr_fam, u_short route_tag, u_long ip,
+u_long mask, u_long next_hop, u_long metric,
+const u_char *payload, int payload_len,
+u_char *packet_buf);
+
+TCP协议数据包：
+int libnet_build_tcp(u_short th_sport, u_short th_dport, u_long th_seq,
+u_long th_ack, u_char th_flags, u_short th_win,
+u_short th_urg, const u_char *payload,
+int payload_len, u_char *packet_buf);
+
+UDP协议数据包：
+int libnet_build_udp(u_short sport, u_short dport, const u_char *payload,
+int payload_len, u_char *packet_buf);
+
+IP协议数据包选项：
+int libnet_insert_ipo(struct ipoption *opt, u_char opt_len,
+u_char *packet_buf);
+
+TCP协议数据包选项：
+int libnet_insert_tcpo(struct tcpoption *opt, u_char opt_len,
+u_char *packet_buf);
+
+
+★ 数据包发送函数
+
+打开raw socket：
+int libnet_open_raw_sock(int protocol);
+
+关闭raw socket：
+int libnet_close_raw_sock(int socket);
+
+选择接口设备：
+int libnet_select_device(struct sockaddr_in *sin, 
+u_char **device, u_char *ebuf);
+
+打开链路层接口设备：
+struct libnet_link_int *libnet_open_link_interface(char *device,
+char *ebuf);
+
+关闭链路层接口设备：
+int libnet_close_link_interface(struct libnet_link_int *l);
+
+发送IP数据包：
+int libnet_write_ip(int socket, u_char *packet, int packet_size);
+
+发送链路层数据包：
+int libnet_write_link_layer(struct libnet_link_int *l,
+const u_char *device, u_char *packet,
+int packet_size);
+
+检验和计算：
+int libnet_do_checksum(u_char *packet, int protocol, int packet_size);
+
+
+★ 相关的支持函数
+
+随机数种子生成器：
+int libnet_seed_prand();
+
+获取随机数：
+u_long libnet_get_prand(int modulus);
+
+16进制数据输出：
+void libnet_hex_dump(u_char * buf, int len, int swap, FILE *stream);
+
+端口列表链初始化：
+int libnet_plist_chain_new(struct libnet_plist_chain **plist,
+char *token_list);
+
+获取端口列表链的下一项(端口范围)：
+int libnet_plist_chain_next_pair(struct libnet_plist_chain *plist,
+u_short *bport, u_short *eport);
+
+端口列表链输出显示：
+int libnet_plist_chain_dump(struct libnet_plist_chain *plist);
+
+获取端口列表链：
+u_char *libnet_plist_chain_dump_string(struct libnet_plist_chain *plist);
+
+端口列表链内存释放：
+void libnet_plist_chain_free(struct libnet_plist_chain *plist);
+
+
+★ 数据常量
+
+==================================================================================
+数据包头大小定义：
+
+常量名 数值(字节数) 
+LIBNET_ARP_H 28 
+LIBNET_DNS_H 12 
+LIBNET_ETH_H 14 
+LIBNET_ICMP_H 4 
+LIBNET_ICMP_ECHO_H 8 
+LIBNET_ICMP_MASK_H 12 
+LIBNET_ICMP_UNREACH_H 8 
+LIBNET_ICMP_TIMXCEED_H 8 
+LIBNET_ICMP_REDIRECT_H 8 
+LIBNET_ICMP_TS_H 20 
+LIBNET_IGMP_H 8 
+LIBNET_IP_H 20 
+LIBNET_RIP_H 24 
+LIBNET_TCP_H 20 
+LIBNET_UDP_H 8
+
+==================================================================================
+数据包内存常量：
+
+常量名 含义
+LIBNET_PACKET TCP/UDP数据包头 + IP数据包头使用的内存
+LIBNET_OPTS IP或TCP选项使用的内存 
+LIBNET_MAX_PACKET IP_MAXPACKET (65535字节)使用的内存
+
+==================================================================================
+随机数发生器常量(libnet_get_prand()函数使用)：
+
+常量名 数值
+LIBNET_PRAND_MAX 65535 
+LIBNET_PR2 0 - 2 
+LIBNET_PR8 0 - 255 
+LIBNET_PR16 0 - 32767 
+LIBNET_PRu16 0 - 65535 
+LIBNET_PR32 0 - 2147483647 
+LIBNET_PRu32 0 - 4294967295
+
+==================================================================================
+错误消息常量(libnet_error()函数使用)：
+
+常量名 含义 
+LIBNET_ERR_WARNING 警告类型消息
+LIBNET_ERR_CRITICAL 紧急类型消息
+LIBNET_ERR_FATAL 致命错误消息
+
+==================================================================================
+libnet_host_lookup()、libnet_host_lookup_r()和libnet_name_resolve()函数使用的常量：
+
+常量名 含义
+LIBNET_DONT_RESOLVE 不将IP地址解析为FQDN名 
+LIBNET_RESOLVE 尝试将IP地址解析为FQDN名
+
+==================================================================================
+宏定义
+
+宏名 功能
+LIBNET_GET_ARENA_SIZE(arena) 返回多数据包内存缓冲区大小(字节数)
+LIBNET_GET_ARENA_REMAINING_BYTES(arena) 返回多数据包内存缓冲区剩余空间大小(字节数)
+LIBNET_PRINT_ETH_ADDR(e) 输出显示ether_addr结构中的以太网地址
+
+==================================================================================
+
+
+---[[ libnet应用实例 ]]----------------------------------
+
+利用libnet函数库开发应用程序的基本步骤非常简单：
+
+1、数据包内存初始化；
+2、网络接口初始化；
+3、构造所需数据包；
+4、计算数据包检验和；
+5、发送数据包；
+6、关闭网络接口；
+7、释放数据包内存。
+
+以下是四个使用了libnet接口函数编写的数据包发送程序。在编译前必须确保libnet库已成功安装。
+例一：
+
+/* Example 1 [raw socket api - TCP packet] */  
+/* gcc -Wall `libnet-config --defines` libnet-example-x.c -o libnet-example-x \  
+`libnet-config --libs` */  
+  
+#include <libnet.h>  
+  
+void usage(char *);  
+  
+int main(int argc, char **argv)   
+{   
+    int network, /* our network interface */   
+        packet_size, /* packet size */   
+        c; /* misc */   
+    u_long src_ip, dst_ip; /* ip addresses */   
+    u_short src_prt, dst_prt; /* ports */   
+    u_char *cp, *packet; /* misc / packet */  
+  
+    printf("libnet example code:\tmodule 1\n\n");   
+    printf("packet injection interface:\traw socket\n");   
+    printf("packet type:\t\t\tTCP [no payload]\n");  
+  
+    src_ip = 0;   
+    dst_ip = 0;   
+    src_prt = 0;   
+    dst_prt = 0;  
+  
+    while((c = getopt(argc, argv, "d:s:")) != EOF)   
+    {   
+        switch (c)   
+        {   
+            /*  
+            * We expect the input to be of the form `ip.ip.ip.ip.port`. We  
+            * point cp to the last dot of the IP address/port string and  
+            * then seperate them with a NULL byte. The optarg now points to  
+            * just the IP address, and cp points to the port.  
+            */   
+        case 'd':   
+            if (!(cp = strrchr(optarg, '.')))   
+            {   
+                usage(argv[0]);   
+            }   
+            *cp++ = 0;   
+            dst_prt = (u_short)atoi(cp);   
+            if (!(dst_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad destination IP address: %s\n", optarg);   
+            }   
+            break;   
+        case 's':   
+            if (!(cp = strrchr(optarg, '.')))   
+            {   
+                usage(argv[0]);   
+            }   
+            *cp++ = 0;   
+            src_prt = (u_short)atoi(cp);   
+            if (!(src_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad source IP address: %s\n", optarg);   
+            }   
+            break;   
+        }   
+    }   
+    if (!src_ip || !src_prt || !dst_ip || !dst_prt)   
+    {   
+        usage(argv[0]);   
+        exit(EXIT_FAILURE);   
+    }  
+  
+    /*  
+    * We're just going to build a TCP packet with no payload using the  
+    * raw sockets API, so we only need memory for a TCP header and an IP  
+    * header.  
+    */   
+    packet_size = LIBNET_IP_H + LIBNET_TCP_H;  
+  
+    /*  
+    * Step 1: Memory initialization (interchangable with step 2).  
+    */   
+    libnet_init_packet(packet_size, &packet);   
+    if (packet == NULL)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_init_packet failed\n");   
+    }  
+  
+    /*  
+    * Step 2: Network initialization (interchangable with step 1).  
+    */   
+    network = libnet_open_raw_sock(IPPROTO_RAW);   
+    if (network == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "Can't open network.\n");   
+    }  
+  
+    /*  
+    * Step 3: Packet construction (IP header).  
+    */   
+    libnet_build_ip(LIBNET_TCP_H, /* size of the packet sans IP header */   
+        IPTOS_LOWDELAY, /* IP tos */   
+        242, /* IP ID */   
+        0, /* frag stuff */   
+        48, /* TTL */   
+        IPPROTO_TCP, /* transport protocol */   
+        src_ip, /* source IP */   
+        dst_ip, /* destination IP */   
+        NULL, /* payload (none) */   
+        0, /* payload length */   
+        packet); /* packet header memory */  
+  
+    /*  
+    * Step 3: Packet construction (TCP header).  
+    */   
+    libnet_build_tcp(src_prt, /* source TCP port */   
+        dst_prt, /* destination TCP port */   
+        0xa1d95, /* sequence number */   
+        0x53, /* acknowledgement number */   
+        TH_SYN, /* control flags */   
+        1024, /* window size */   
+        0, /* urgent pointer */   
+        NULL, /* payload (none) */   
+        0, /* payload length */   
+        packet + LIBNET_IP_H); /* packet header memory */  
+  
+    /*  
+    * Step 4: Packet checksums (TCP header only).  
+    */   
+    if (libnet_do_checksum(packet, IPPROTO_TCP, LIBNET_TCP_H) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+    }  
+  
+    /*  
+    * Step 5: Packet injection.  
+    */   
+    c = libnet_write_ip(network, packet, packet_size);   
+    if (c < packet_size)   
+    {   
+        libnet_error(LN_ERR_WARNING,   
+            "libnet_write_ip only wrote %d bytes\n", c);   
+    }   
+    else   
+    {   
+        printf("construction and injection completed, wrote all %d bytes\n", c);   
+    }  
+  
+    /*  
+    * Shut down the interface.  
+    */   
+    if (libnet_close_raw_sock(network) == -1)   
+    {   
+        libnet_error(LN_ERR_WARNING,   
+            "libnet_close_raw_sock couldn't close the interface");   
+    }  
+  
+  
+    /*  
+    * Free packet memory.  
+    */   
+    libnet_destroy_packet(&packet);  
+  
+    return (c == -1 ? EXIT_FAILURE : EXIT_SUCCESS);   
+}  
+  
+  
+void usage(char *name)   
+{   
+    fprintf(stderr, "usage: %s -s s_ip.s_port -d d_ip.d_port\n", name);   
+}  
+
+
+例二：
+
+/* Example 2 [link layer api - ICMP_MASK] */  
+/* gcc -Wall `libnet-config --defines` libnet-example-x.c -o libnet-example-x `libnet-config --libs` */  
+  
+#include <libnet.h>  
+  
+void usage(char *);  
+  
+u_char enet_src[6] = {0x0d, 0x0e, 0x0a, 0x0d, 0x00, 0x00};   
+u_char enet_dst[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};  
+  
+int   
+main(int argc, char *argv[])   
+{   
+    int packet_size, /* size of our packet */   
+        c; /* misc */   
+    u_long src_ip, dst_ip; /* source ip, dest ip */   
+    u_char *packet; /* pointer to our packet buffer */   
+    char err_buf[LIBNET_ERRBUF_SIZE]; /* error buffer */   
+    u_char *device; /* pointer to the device to use */   
+    struct libnet_link_int *network; /* pointer to link interface struct */  
+  
+    printf("libnet example code:\tmodule 2\n\n");   
+    printf("packet injection interface:\tlink layer\n");   
+    printf("packet type:\t\t\tICMP net mask [no payload]\n");  
+  
+    device = NULL;   
+    src_ip = 0;   
+    dst_ip = 0;  
+  
+    while ((c = getopt(argc, argv, "i:d:s:")) != EOF)   
+    {   
+        switch (c)   
+        {   
+        case 'd':   
+            if (!(dst_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad destination IP address: %s\n", optarg);  
+  
+            }   
+            break;   
+        case 'i':   
+            device = optarg;   
+            break;   
+        case 's':   
+            if (!(src_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad source IP address: %s\n", optarg);   
+            }   
+            break;   
+        default:   
+            exit(EXIT_FAILURE);   
+        }   
+    }  
+  
+    if (!src_ip || !dst_ip)   
+    {   
+        usage(argv[0]);   
+        exit(EXIT_FAILURE);   
+    }  
+  
+    /*  
+    * Step 1: Network Initialization (interchangable with step 2).  
+    */   
+    if (device == NULL)   
+    {   
+        struct sockaddr_in sin;   
+        /*  
+        * Try to locate a device.  
+        */   
+        if (libnet_select_device(&sin, &device, err_buf) == -1)   
+        {   
+            libnet_error(LIBNET_ERR_FATAL,   
+                "libnet_select_device failed: %s\n", err_buf);   
+        }   
+        printf("device:\t\t\t\t%s\n", device);   
+    }  
+  
+    if ((network = libnet_open_link_interface(device, err_buf)) == NULL)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL,   
+            "libnet_open_link_interface: %s\n", err_buf);   
+    }  
+  
+    /*  
+    * We're going to build an ICMP packet with no payload using the  
+    * link-layer API, so this time we need memory for a ethernet header  
+    * as well as memory for the ICMP and IP headers.  
+    */   
+    packet_size = LIBNET_IP_H + LIBNET_ETH_H + LIBNET_ICMP_MASK_H;  
+  
+  
+    /*  
+    * Step 2: Memory Initialization (interchangable with step 1).  
+    */   
+    if (libnet_init_packet(packet_size, &packet) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_init_packet failed\n");   
+    }  
+  
+  
+    /*  
+    * Step 3: Packet construction (ethernet header).  
+    */   
+    libnet_build_ethernet(enet_dst,   
+        enet_src,   
+        ETHERTYPE_IP,   
+        NULL,   
+        0,   
+        packet);  
+  
+    /*  
+    * Step 3: Packet construction (ICMP header).  
+    */   
+    libnet_build_icmp_mask(ICMP_MASKREPLY, /* type */   
+        0, /* code */   
+        242, /* id */   
+        0, /* seq */   
+        0xffffffff, /* mask */   
+        NULL, /* payload */   
+        0, /* payload_s */   
+        packet + LIBNET_ETH_H + LIBNET_IP_H);  
+  
+  
+    /*  
+    * Step 3: Packet construction (IP header).  
+    */   
+    libnet_build_ip(ICMP_MASK_H,   
+        0, /* IP tos */   
+        242, /* IP ID */   
+        0, /* Frag */   
+        64, /* TTL */   
+        IPPROTO_ICMP, /* Transport protocol */   
+        src_ip, /* Source IP */   
+        dst_ip, /* Destination IP */   
+        NULL, /* Pointer to payload (none) */   
+        0,   
+        packet + LIBNET_ETH_H); /* Packet header memory */  
+  
+    /*  
+    * Step 4: Packet checksums (ICMP header *AND* IP header).  
+    */   
+    if (libnet_do_checksum(packet + ETH_H, IPPROTO_ICMP, LIBNET_ICMP_MASK_H) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+    }   
+    if (libnet_do_checksum(packet + ETH_H, IPPROTO_IP, LIBNET_IP_H) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+    }  
+  
+  
+    /*  
+    * Step 5: Packet injection.  
+    */   
+    c = libnet_write_link_layer(network, device, packet, packet_size);   
+    if (c < packet_size)   
+    {   
+        libnet_error(LN_ERR_WARNING,   
+            "libnet_write_link_layer only wrote %d bytes\n", c);   
+    }   
+    else   
+    {   
+        printf("construction and injection completed, wrote all %d bytes\n", c);   
+    }  
+  
+  
+    /*  
+    * Shut down the interface.  
+    */   
+    if (libnet_close_link_interface(network) == -1)   
+    {   
+        libnet_error(LN_ERR_WARNING,   
+            "libnet_close_link_interface couldn't close the interface");   
+    }  
+  
+  
+    /*  
+    * Free packet memory.  
+    */   
+    libnet_destroy_packet(&packet);  
+  
+    return (c == -1 ? EXIT_FAILURE : EXIT_SUCCESS);   
+}  
+  
+void usage(char *name)   
+{   
+    fprintf(stderr, "usage: %s [-i interface] -s s_ip -d d_ip\n", name);   
+}  
+
+例三：
+
+/* Example 3 [raw socket api - ICMP_ECHO using an arena] */  
+/* gcc -Wall `libnet-config --defines` libnet-example-x.c -o libnet-example-x \  
+`libnet-config --libs` */  
+  
+#include <libnet.h>  
+  
+void usage(char *);  
+  
+  
+int main(int argc, char **argv)   
+{   
+    int network, n, c, number_of_packets, packet_size;   
+    struct libnet_arena arena, *arena_p;   
+    u_char *packets[10];   
+    u_long src_ip, dst_ip;  
+  
+    printf("libnet example code:\tmodule 3\n\n");   
+    printf("packet injection interface:\tlink layer\n");   
+    printf("packet type:\t\t\tICMP_ECHO [no payload] using an arena\n");  
+  
+    src_ip = 0;   
+    dst_ip = 0;   
+    while((c = getopt(argc, argv, "d:s:")) != EOF)   
+    {   
+        switch (c)   
+        {   
+        case 'd':   
+            if (!(dst_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad destination IP address: %s\n", optarg);   
+            }   
+            break;   
+        case 's':   
+            if (!(src_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad source IP address: %s\n", optarg);   
+            }   
+            break;   
+        }   
+    }   
+    if (!src_ip || !dst_ip)   
+    {   
+        usage(argv[0]);   
+        exit(EXIT_FAILURE);   
+    }  
+  
+    /*  
+    * We're just going to build an ICMP packet with no payload using the  
+    * raw sockets API, so we only need memory for a ICMP header and an IP  
+    * header.  
+    */   
+    packet_size = LIBNET_IP_H + LIBNET_ICMP_ECHO_H;  
+  
+    /*  
+    * Let's just build say, 10 packets.  
+    */   
+    number_of_packets = 10;  
+  
+    arena_p = &arena;   
+    if (libnet_init_packet_arena(&arena_p, number_of_packets, packet_size) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_init_packet_arena failed\n");   
+    }   
+    else   
+    {   
+        printf("Allocated an arena of %ld bytes..\n",   
+            LIBNET_GET_ARENA_SIZE(arena));   
+    }  
+  
+    network = libnet_open_raw_sock(IPPROTO_RAW);   
+    if (network == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "Can't open the network.\n");   
+    }  
+  
+    for (n = 0; n < number_of_packets; n++)   
+    {   
+        printf("%ld bytes remaining in arena\n",   
+            LIBNET_GET_ARENA_REMAINING_BYTES(arena));   
+        packets[n] = libnet_next_packet_from_arena(&arena_p, packet_size);   
+        if (!packets[n])   
+        {   
+            libnet_error(LIBNET_ERR_WARNING, "Arena is empty\n");   
+            continue;   
+        }  
+  
+        libnet_build_ip(ICMP_ECHO_H, /* Size of the payload */   
+            IPTOS_LOWDELAY | IPTOS_THROUGHPUT, /* IP tos */   
+            242, /* IP ID */   
+            0, /* frag stuff */   
+            48, /* TTL */   
+            IPPROTO_ICMP, /* transport protocol */   
+            src_ip, /* source IP */   
+            dst_ip, /* destination IP */   
+            NULL, /* pointer to payload */   
+            0, /* payload length */   
+            packets[n]); /* packet header memory */  
+  
+        libnet_build_icmp_echo(ICMP_ECHO, /* type */   
+            0, /* code */   
+            242, /* id */   
+            5, /* seq */   
+            NULL, /* pointer to payload */   
+            0, /* payload length */   
+            packets[n] + LIBNET_IP_H); /* packet header memory */  
+  
+        if (libnet_do_checksum(packets[n], IPPROTO_ICMP, LIBNET_ICMP_ECHO_H) == -1)   
+        {   
+            libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+        }  
+  
+        c = libnet_write_ip(network, packets[n], packet_size);   
+        if (c < packet_size)   
+        {   
+            libnet_error(LN_ERR_WARNING,   
+                "libnet_write_ip only wrote %d bytes\n", c);   
+        }   
+        else   
+        {   
+            printf("construction and injection of packet %d of %d completed, wrote all %d bytes\n",  
+                n + 1, number_of_packets, c);   
+        }   
+    }  
+  
+    libnet_destroy_packet_arena(&arena_p);   
+    return (c == -1 ? EXIT_FAILURE : EXIT_SUCCESS);   
+}  
+  
+  
+void usage(char *name)   
+{   
+    fprintf(stderr, "usage: %s -s source_ip -d destination_ip\n ", name);   
+}  
+
+例四：
+
+/* Example 4 [link-layer api - UDP packet using port list chaining] */  
+/* gcc -Wall `libnet-config --defines` libnet-example-x.c -o libnet-example-x \  
+`libnet-config --libs` */  
+  
+#include <libnet.h>  
+  
+#define MAX_PAYLOAD_SIZE 1024  
+  
+void usage(char *);  
+  
+u_char enet_src[6] = {0x0d, 0x0e, 0x0a, 0x0d, 0x00, 0x00};   
+u_char enet_dst[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};  
+  
+int main(int argc, char *argv[])   
+{   
+    int packet_size, /* size of our packet */   
+        payload_size, /* size of our packet */   
+        c; /* misc */   
+    u_long src_ip, dst_ip; /* source ip, dest ip */   
+    u_short bport, eport; /* beginning and end ports */   
+    u_short cport; /* current port */   
+    u_char payload[MAX_PAYLOAD_SIZE]; /* packet payload */   
+    u_char *packet; /* pointer to our packet buffer */   
+    char err_buf[LIBNET_ERRBUF_SIZE]; /* error buffer */   
+    u_char *device; /* pointer to the device to use */   
+    struct libnet_link_int *network; /* pointer to link interface struct */   
+    struct libnet_plist_chain plist; /* plist chain */   
+    struct libnet_plist_chain *plist_p; /* plist chain pointer */  
+  
+    printf("libnet example code:\tmodule 4\n\n");   
+    printf("packet injection interface:\tlink layer\n");   
+    printf("packet type:\t\t\tUDP [with payload] using port list chaining\n");  
+  
+    plist_p = NULL;   
+    device = NULL;   
+    src_ip = 0;   
+    dst_ip = 0;  
+  
+    while ((c = getopt(argc, argv, "i:d:s:p:")) != EOF)   
+    {   
+        switch (c)   
+        {   
+        case 'd':   
+            if (!(dst_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad destination IP address: %s\n", optarg);  
+  
+            }   
+            break;   
+        case 'i':   
+            device = optarg;   
+            break;   
+        case 's':   
+            if (!(src_ip = libnet_name_resolve(optarg, LIBNET_RESOLVE)))   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Bad source IP address: %s\n", optarg);   
+            }   
+            break;   
+        case 'p':   
+            plist_p = &plist;   
+            if (libnet_plist_chain_new(&plist_p, optarg) == -1)   
+            {   
+                libnet_error(LIBNET_ERR_FATAL,   
+                    "Could not build port list\n");   
+            }   
+            break;   
+        default:   
+            usage(argv[0]);   
+            exit(EXIT_FAILURE);   
+        }   
+    }  
+  
+    if (!src_ip || !dst_ip || !plist_p)   
+    {   
+        usage(argv[0]);   
+        exit(EXIT_FAILURE);   
+    }  
+  
+    c = argc - optind;   
+    if (c != 1)   
+    {   
+        usage(argv[0]);   
+        exit(EXIT_FAILURE);   
+    }   
+    memset(payload, 0, sizeof(payload));   
+    strncpy(payload, argv[optind], strlen(argv[optind]));  
+  
+  
+    /*  
+    * Step 1: Network Initialization (interchangable with step 2).  
+    */   
+    if (device == NULL)   
+    {   
+        struct sockaddr_in sin;   
+        /*  
+        * Try to locate a device.  
+        */   
+        if (libnet_select_device(&sin, &device, err_buf) == -1)   
+        {   
+            libnet_error(LIBNET_ERR_FATAL,   
+                "libnet_select_device failed: %s\n", err_buf);   
+        }   
+        printf("device:\t\t\t\t%s\n", device);   
+    }   
+    if ((network = libnet_open_link_interface(device, err_buf)) == NULL)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL,   
+            "libnet_open_link_interface: %s\n", err_buf);   
+    }  
+  
+    /*  
+    * Get the payload from the user. Hrm. This might fail on a Sparc  
+    * if byte alignment is off...  
+    */   
+    payload_size = strlen(payload);  
+  
+    /*  
+    * We're going to build a UDP packet with a payload using the  
+    * link-layer API, so this time we need memory for a ethernet header  
+    * as well as memory for the ICMP and IP headers and our payload.  
+    */   
+    packet_size = LIBNET_IP_H + LIBNET_ETH_H + LIBNET_UDP_H + payload_size;  
+  
+    /*  
+    * Step 2: Memory Initialization (interchangable with step 1).  
+    */   
+    if (libnet_init_packet(packet_size, &packet) == -1)   
+    {   
+        libnet_error(LIBNET_ERR_FATAL, "libnet_init_packet failed\n");   
+    }  
+  
+  
+    /*  
+    * Step 3: Packet construction (ethernet header).  
+    */   
+    libnet_build_ethernet(enet_dst,   
+        enet_src,   
+        ETHERTYPE_IP,   
+        NULL,   
+        0,   
+        packet);  
+  
+    /*  
+    * Step 3: Packet construction (IP header).  
+    */   
+    libnet_build_ip(LIBNET_UDP_H + payload_size,   
+        0, /* IP tos */   
+        242, /* IP ID */   
+        0, /* Frag */   
+        64, /* TTL */   
+        IPPROTO_UDP, /* Transport protocol */   
+        src_ip, /* Source IP */   
+        dst_ip, /* Destination IP */   
+        NULL, /* Pointer to payload (none) */   
+        0,   
+        packet + LIBNET_ETH_H); /* Packet header memory */  
+  
+    while (libnet_plist_chain_next_pair(plist_p, &bport, &eport))   
+    {  
+  
+        while (!(bport > eport) && bport != 0)   
+        {   
+            cport = bport++;   
+            /*  
+            * Step 3: Packet construction (UDP header).  
+            */   
+            libnet_build_udp(242, /* source port */   
+                cport, /* dest. port */   
+                payload, /* payload */   
+                payload_size, /* payload length */   
+                packet + LIBNET_ETH_H + LIBNET_IP_H);  
+  
+            /*  
+            * Step 4: Packet checksums (ICMP header *AND* IP header).  
+            */   
+            if (libnet_do_checksum(packet + ETH_H, IPPROTO_UDP, LIBNET_UDP_H + payload_size) == -1)   
+            {   
+                libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+            }   
+            if (libnet_do_checksum(packet + ETH_H, IPPROTO_IP, LIBNET_IP_H) == -1)   
+            {   
+                libnet_error(LIBNET_ERR_FATAL, "libnet_do_checksum failed\n");   
+            }  
+  
+            /*  
+            * Step 5: Packet injection.  
+            */   
+            c = libnet_write_link_layer(network, device, packet, packet_size);   
+            if (c < packet_size)   
+            {   
+                libnet_error(LN_ERR_WARNING,   
+                    "libnet_write_link_layer only wrote %d bytes\n", c);   
+            }   
+            else   
+            {   
+                printf("construction and injection completed, wrote all %d bytes, port %d\n",  
+                    c, cport);   
+            }   
+        }   
+    }   
+    /*  
+    * Shut down the interface.  
+    */   
+    if (libnet_close_link_interface(network) == -1)   
+    {   
+        libnet_error(LN_ERR_WARNING,   
+            "libnet_close_link_interface couldn't close the interface");   
+    }  
+  
+  
+    /*  
+    * Free packet memory.  
+    */   
+    libnet_destroy_packet(&packet);  
+  
+    return (c == -1 ? EXIT_FAILURE : EXIT_SUCCESS);   
+}  
+  
+  
+void usage(char *name)   
+{   
+    fprintf(stderr, "usage: %s [-i interface] -s s_ip -d d_ip -p port list payload\n", name);   
+} 
+
+ 例五：
+
+给出一个综合应用libnet和libpcap的简单例程，其功能是在接收到一个来自特定主机的ARP请求报文之后，发出ARP回应报文，通知该主机请求的IP地址对应的MAC地址。这个程序实现了标准的ARP协议，但是却不同于操作系统内核中标准的实现方法：该程序利用了libpcap在数据链路层抓包，利用了libnet向数据链路层发包，是使用libnet和libpcap构造TCP/IP协议软件的一个例程。该程序很简单，但已经可以说明libnet和libpcap的综合使用方法：  
+  
+/* tell destination host with ip 'dstip' that the host with  
+* request ip 'srcip' is with mac address srcmac 
+* author: white cpf  2003.5.15. 
+* compile: gcc arp.c -lnet -lpcap -o arp 
+*/  
+#include "/usr/include/libnet.h"  
+#include <pcap.h>  
+void usage(char * exename){  
+    printf(" tell dstip with dstmac that srcip is at srcmac. \n");  
+    printf(" usage: %s -d dstip -s srcip -D dstmac -S srcmac \n",exename);  
+    return ;  
+}  
+//程序输入：来自命令行参数  
+u_char ip_src[4],ip_dst[4];  
+u_char enet_src[6],enet_dst[6];  
+extern int mac_strtochar6(u_char * enet,char * macstr);  
+//将字符串格式的MAC地址转换为6字节类型r  
+int get_cmdline(int argc,char *argv[]);//命令行参数处理函数  
+int main(int argc, char *argv[]){  
+    libnet_t *l;  
+    libnet_ptag_t t;  
+    u_char *packet;  
+    u_long packet_s;  
+    char device[5]="eth0";  
+    char errbuf[LIBNET_ERRBUF_SIZE];  
+    char filter_str[100]="";  
+    struct bpf_program fp;      /* hold compiled program     */  
+    char *dev;  
+    pcap_t* descr;  
+    struct pcap_pkthdr hdr;     /* pcap.h    */  
+    u_char * packet;  
+    bpf_u_int32 maskp;          /* subnet mask               */  
+    bpf_u_int32 netp;           /* ip                        */  
+    int promisc=0;               /* set to promisc mode?        */  
+    int pcap_time_out=5;  
+    int c, ret;  
+    u_long i;  
+    if(get_cmdline(argc,argv)<=0){  
+        usage(argv[0]);  
+        exit(0);  
+    }  
+  
+    dev = pcap_lookupdev(errbuf);  
+    if(dev == NULL){   
+        fprintf(stderr,"%s\n",errbuf);  
+        return -1;  
+    }  
+    ret=pcap_lookupnet(dev,&netp,&maskp,errbuf);  
+    if(ret==-1){  
+        fprintf(stderr,"%s\n",errbuf);  
+        return -1;  
+    }  
+    descr = pcap_open_live(dev,BUFSIZ,promisc,pcap_time_out,errbuf);  
+    if(descr == NULL){  
+        printf("pcap_open_live(): %s\n",errbuf);  
+        return -1;   
+    }  
+    sprintf(filter_str,"arp and (src net %d.%d.%d.%d)",ip_dst[0],ip_dst[1],  
+        ip_dst[2],ip_dst[3]);  
+    if(pcap_compile(descr,&fp,filter_str,0,netp) == -1){  
+        printf("Error calling pcap_compile\n");   
+        return -1;  
+    }  
+    if(pcap_setfilter(descr,&fp) == -1){   
+        printf("Error setting filter\n");   
+        return -1;  
+    }  
+    while(1){  
+        printf("wait packet:filter:%s\n",filter_str);  
+        packet=pcap_next(descr, &hdr);  
+        if(packet == NULL){  
+            continue;  
+        }  
+        l = libnet_init(LIBNET_LINK_ADV,device,errbuf);   
+        if (l == NULL){  
+            fprintf(stderr, "libnet_init() failed: %s", errbuf);  
+            exit(EXIT_FAILURE);  
+        }  
+        t = libnet_build_arp(  
+            ARPHRD_ETHER,                           /* hardware addr */  
+            ETHERTYPE_IP,                           /* protocol addr */  
+            6,                                      /* hardware addr size */  
+            4,                                      /* protocol addr size */  
+            ARPOP_REPLY,                            /* operation type */  
+            enet_src,                               /* sender hardware addr */  
+            ip_src,                           /* sender protocol addr */  
+            enet_dst,                               /* target hardware addr */  
+            ip_dst,                           /* target protocol addr */  
+            NULL,                                   /* payload */  
+            0,                                      /* payload size */  
+            l,                                      /* libnet handle */  
+            0);                                     /* libnet id */  
+        if (t == -1){  
+            fprintf(stderr, "Can't build ARP header: %s\n", libnet_geterror(l));  
+            goto bad;  
+        }  
+        t = libnet_autobuild_ethernet(  
+            enet_dst,                               /* ethernet destination */  
+            ETHERTYPE_ARP,                          /* protocol type */  
+            l);                                     /* libnet handle */  
+        if (t == -1){  
+            fprintf(stderr, "Can't build ethernet header: %s\n", libnet_geterror(l));  
+            goto bad;  
+        }  
+        c = libnet_adv_cull_packet(l, &packet, &packet_s);  
+        if (c == -1){  
+            fprintf(stderr, "libnet_adv_cull_packet: %s\n", libnet_geterror(l));  
+            goto bad;  
+        }  
+        c = libnet_write(l);  
+        if (c == -1){  
+            fprintf(stderr, "Write error: %s\n", libnet_geterror(l));  
+            goto bad;  
+        }  
+        continue;  
+bad:  
+        libnet_destroy(l);  
+        return (EXIT_FAILURE);  
+    }  
+    libnet_destroy(l);  
+    return (EXIT_FAILURE);  
+}  
+int get_cmdline(int argc,char *argv[]){  
+    char c;  
+    char string[]="d:s:D:S:h";  
+    while((c = getopt(argc, argv, string)) != EOF){  
+        if(c=='d')  
+            *((unsigned int*)ip_dst)=(unsigned int)inet_addr(optarg);  
+        else if(c== 's')  
+            *((unsigned int*)ip_src)=(unsigned int)inet_addr(optarg);  
+        else if(c=='D')  
+            mac_strtochar6(enet_dst,optarg);  
+        else if(c=='S')  
+            mac_strtochar6(enet_dst,optarg);  
+        else if(c=='h')  
+            return 0;  
+        else  
+            return -1;  
+    }  
+    return 1;  
+} 
+
+
+ 例六：
+
+#include <win32/libnet.h>  
+#pragma comment(lib, "libnet.lib")  
+  
+void main()  
+{  
+    int packet_size;//存放数据包长度的变量  
+    libnet_t *l;//libnet句柄  
+    libnet_ptag_t protocol_tag;//协议块标记  
+    char *device = NULL;//设备名字，此时为NULL  
+    char error_information[LIBNET_ERRBUF_SIZE];//用来存放错误信息  
+    char *destination_ip_str = "192.168.0.2";//目的IP地址字符串变量，可以指定任意一个合法的IP地址  
+    char *source_ip_str = "192.168.0.3";//源IP地址字符串变量，可以指定任意一个合法的IP地址  
+  
+    u_char hardware_source[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};//源MAC地址，可以是任意指定  
+    u_char hardware_destination[6] ={0x06, 0x05, 0x04, 0x03, 0x02, 0x01};//目的MAC地址，可以是任意指定  
+  
+    u_long destination_ip;// 目的IP地址  
+    u_long source_ip;//源IP地址  
+  
+    l = libnet_init(  
+        LIBNET_LINK_ADV,//libnet类型 */  
+        device,//网络设备  
+        error_information);   
+  
+    destination_ip = libnet_name2addr4(l,destination_ip_str, LIBNET_RESOLVE);  
+    //把目的IP地址字符串形式转化成网络顺序字节形式的数据  
+    source_ip = libnet_name2addr4(l, source_ip_str, LIBNET_RESOLVE);  
+    //把源IP地址字符串形式转化成网络顺序字节形式的数据  
+  
+    protocol_tag = libnet_build_arp(  
+        //构造ARP协议块，函数的返回值是代表新生成的ARP协议块的一个协议块标记  
+        ARPHRD_ETHER,  
+        // 硬件地址类型，在这里是以太网  
+        ETHERTYPE_IP,  
+        //协议地址类型，在这里是IP协议  
+        6,  
+        //硬件地址长度，MAC地址的长度为6  
+        4,  
+        //协议地址长度，IP地址的长度为4  
+        ARPOP_REPLY,  
+        //操作类型，在这里是ARP应答类型  
+        hardware_source,  
+        //源硬件地址  
+        (u_int8_t*) &source_ip,  
+        //源IP地址  
+        hardware_destination,  
+        //目标硬件地址  
+        (u_int8_t*) &destination_ip,  
+        //目标协议地址  
+        NULL,  
+        //负载，此时为NULL  
+        0,  
+        //负载的长度，此时为0  
+        l,  
+        //libnet句柄，此句柄由libnet_init()函数生成  
+        0  
+        //协议块标记，此时为0，表示构造一个新的ARP协议块，而不是修改已经存在的协议块  
+        );  
+  
+    protocol_tag = libnet_autobuild_ethernet(  
+        // 以auto的形式构造一个以太网协议块，返回一个指向此协议块的标记  
+        hardware_destination,  
+        //目的硬件地址  
+        ETHERTYPE_ARP,  
+        //以太网上层协议类型，此时为ARP类型  
+        l //libnet句柄  
+        );  
+  
+    packet_size = libnet_write(l);//发送已经构造的ARP数据包  
+    printf("发送一个%d字节长度的ARP应答数据包 ", packet_size);//输出发送的ARP数据包的字节数  
+  
+    libnet_destroy(l);//销毁libnet  
+}
+
+
