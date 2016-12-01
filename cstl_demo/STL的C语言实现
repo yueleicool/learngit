@@ -1,0 +1,318 @@
+STL的C语言实现—–libcstl
+http://www.xuebuyuan.com/1793968.html
+
+libcstl简介
+libcstl是一个应用于C语言编程的函数库，它将编程过程中经常使用的数据结构如向量、链表、集合、树等封 装成相应的数据结构并提供一系列的操作函数来操作保存在这些数据结构中的数据，同时它还将常用的算法如 排序、查找、划分等封装成相应的算法函数并提供迭代器来使两者之间建立联系方便使用。从libcstl的名字 就可以看出它于STL有一定的关系，是的libcstl的接口和实现都是模仿了STL。
+
+libcstl的产生主要是基于使用C语言编程过程中经常要使用向量、链表、集合等数据结构和排序、查找、划分 等算法，但是对于这些数据结构和算法每次都要重复的实现，如果有一个通用的类似于STL的数据结构和算法 的库就可以节约时间和成本，这样libcstl就诞生了。
+
+libcstl编译和安装
+在libcstl-2.0.2中使用configure选项来支持2.0.的编译配置。
+
+关闭控制断言(--disable-assert)
+定义这个选项可以去掉库中的断言.当库函数接受到非法参数时,断言就会报错,但是有断言的版本执行效率低 (非断言版本效率大约是有断言版本的 20~40 倍).
+
+开启内存管理(--with-memory-management)
+这个选项可以开启内存管理，默认情况下内存管理是关闭的。
+
+配置 stack_t 适配器的底层实现(--enable-stack-implementation=ARGUMENT)
+这个选项是配置 stack_t 适配器的底层实现的。ARGUMENT 作为 stack_t 的底层实现,ARGUMENT 可以是 vector(--enable-stack-implementation=vector)和 list(--enable-stack-implementation=list), 默认使用 deque_t 作为 stack_t的底层实现.
+
+配置 queue_t 适配器的底层实现(--enable-queue-implementation=ARGUMENT)
+这个选项是配置 queue_t 的底层实现,ARGUMENT 作为 queue_t 的底层实现,ARGUMENT 是 list(--enable-queue-implementation=list),默认使用 deque_t 为 queue_t 的底层实现.
+
+配置 set_t 的底层实现(--enable-set-implementation=ARGUMENT)
+
+配置 multiset_t 的底层实现(--enable-multiset-implementation=ARGUMENT)
+
+配置 map_t 的底层实现(--enable-map-implementation=ARGUMENT)
+
+配置 multimap_t 的底层实现(--enable-multimap-implementation=ARGUMENT)
+
+以上四个选项是配置关联容器的底层实现的,ARGUMENT 的可选参数是 avl-tree,关联容器默认使用红黑树作为 底层实现(红黑树比 avl 树快 40%)。默认使用红黑树作为底层实现。
+
+libcstl基本概念
+libcstl由多个分组成，容器，迭代器，算法和函数 容器: 容器以某种结构形式管理数据的集合,每一种容器都有各自的特点. 迭代器: 迭代器与容器相关联,应用与容器或容器的子集,它的主要好处在于为容器提供了一个统一的接口.迭代器是容器 和算法之间的桥梁,它使得算法独立于特定的容器. 算法: 算法是对数据集合进行某些操作,它可以排序,查找,修改或其他一些操作.算法使用迭代器作为输入,这样算法可 以独立于容器,实现在任意容器上的操作.同时算法还使用特定的函数对容器中的数据进行特定的操作. 函数: 函数只是规定了算法中使用的函数形式,并且定义了一些算法中常用的函数，可以作为算法的自定义规则.
+
+容器
+容器可以用来排序数据,管理和存储数据,所以为了不同的目的libcstl提供了不同的容器.容器分为: 序列容器: 序列容器主要用来存储和管理数据,容器中的数据的顺序与数据插入到容器中的次序有关,而与数据本身的值无关. libcstl提供的序列容器有:vector_t, list_t, deque_t, slist_t. 关联容器: 关联容器更关系容器中数据的排列顺序,容器中数据的顺序是排序的与数据本身有关而与数据插入到容器中的次 序无关.libcstl 提供的关联容器有:set_t, map_t, multiset_t,
+multimap_t, hash_set_t, hash_map_t, hash_multiset_t, hash_multimap_t. 容器适配器: 除了以上这些容器之外,libcstl为了特殊的目的还提供了容器适配器,它们都是基本的容器实现的. 容器适配器有:stack_t,queue_t,priority_queue_t. 字符串类型： string_t类型可以像c-str一样拷贝,赋值,比较而不必考虑是否有足够的内存来保存字符串,会不会越界等等. 因为string_t可以动态增长,并且易于使用,你可很方便的插入删除字符或子串,方便的替换等等.
+
+迭代器
+迭代器是对容器的特定范围的数据进行遍历的类型,这个范围可能是整个容器或者是容器的一部分.迭代器表示的 是容器中数据的位置的数据结构，它将各个容器的数据位置统一，使用同样的接口进行操作。各个容器都提供了迭代器结构， 同时各种算法都是通过迭代器来操作的，所以说迭代器是容器和算法之间联系的桥梁。
+
+算法
+libcstl为了处理数据提供了许多算法,例如查找,排序,拷贝,修改还有算术操作.算法不属于任何一种容器,它能 够处理任何容器中的数据,算法都是以迭代器作为输入
+
+容器使用代码
+以vector_t例子介绍容器的使用，容器的使用可以分为四步：
+
+1.创建容器
+2.初始化容器
+3.对容器操作
+4.销毁容器
+
+以下是使用容器的代码，其中对容器遍历用了两种方法，一种是迭代器，一种是用下标，建议遍历的时候使用迭代器。
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include <cstl/cvector.h>
+/**
+ *bref 比较容器中两个节点值的大小
+*/
+void value_greater(const void *cpv_first, const void *cpv_second, void *pv_output)
+{
+    if (*(int *)cpv_first > *(int *)cpv_second){
+        *(bool_t *)pv_output = true;
+    }else{
+        *(bool_t *)pv_output = false;
+    }
+}
+
+/**
+ *bref 用迭代器遍历容器
+*/
+void vector_travel_by_iter(vector_t *pt_vec)
+{
+    iterator_t iter;
+    if (pt_vec == NULL){
+        fprintf(stderr, "[travel_inter]:vector is null.\n");
+        return;
+    }
+    printf("------------使用迭代器遍历 ------------\n");
+    for (iter = vector_begin(pt_vec); !iterator_equal(iter, vector_end(pt_vec)); iter = iterator_next(iter)){
+        printf("%d  ", *(int *)iterator_get_pointer(iter));
+    }
+    printf("\n");
+}
+
+
+/**
+ *bref 用下标遍历容器
+*/
+
+void vector_travel_by_index(vector_t *pt_vec)
+{
+    size_t t_index = 0;
+    if (pt_vec == NULL){
+        fprintf(stderr, "[travel_index]:vector is null.\n");
+        return;
+    }
+    printf("------------使用下标遍历------------\n");
+    for (t_index = 0; t_index < 10; t_index++){
+        printf("%d  ", *(int *)vector_at(pt_vec, t_index));
+    }
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+    vector_t *pt_vec = create_vector(int);
+    size_t t_index = 0;
+    iterator_t iter;
+    if (pt_vec == NULL){
+        fprintf(stderr, "create vector is failed.\n");
+        return -1;
+    }
+
+    vector_init(pt_vec);
+    srand((unsigned int)time(NULL));
+    
+    ///循环赋值
+    for (t_index = 0; t_index < 10; t_index++){
+        vector_push_back(pt_vec, rand()%64);
+    }
+
+    printf("begin sorting:\n");
+    vector_travel_by_iter(pt_vec);
+    vector_travel_by_index(pt_vec);
+
+    printf("\nafter order sorting:\n");
+
+    ///有条件排序，排序条件以回调函数的形式给出，如果回调函数为空，使用默认条件（递增）排序
+    algo_sort_if(vector_begin(pt_vec), vector_end(pt_vec), value_greater);
+    vector_travel_by_iter(pt_vec);
+    printf("\nafter reverse sorting:\n");
+    
+    ///默认条件（递增）排序
+    algo_sort(vector_begin(pt_vec), vector_end(pt_vec));
+    vector_travel_by_index(pt_vec);
+
+    vector_destroy(pt_vec);
+    return 0;
+}
+
+编译：
+gcc -o test_vector test_vector.c -I/root/libcstl/lib/include/ -L/root/libcstl/lib/lib/ -lcstl
+运行结果如下：
+
+begin sorting:
+------------使用迭代器遍历 ------------
+27  7  16  58  49  24  53  14  34  22
+------------使用下标遍历------------
+
+27  7  16  58  49  24  53  14  34  22
+
+after order sorting:
+------------使用迭代器遍历 ------------
+58  53  49  34  27  24  22  16  14  7
+
+after reverse sorting:
+------------使用下标遍历------------
+7  14  16  22  24  27  34  49  53  58
+libcstl适用的数据类型
+上面这些例子使用的都是基本的数据类型，但是在实际的编程过程中经常使用的是自定义的数据结构类型，libcstl-1.0不能够有效的 处理这些数据类型的，但是libcstl-2.0.0相对于1.0.1来说最大的提高就是增强了对各种数据类型的处理能力。libcstl-2.0.0有效的 处理绝大部分的数据类型。它将数据类型分为3类：
+
+1.C语言内建类型：如：int, long, double等。
+2.用户自定义类型：用户自己定义的数据结构。
+3.libcstl内建类型：如vector_t, set_t, hash_multimap_t等。
+
+其中libcstl内建类型是用户自定义类型的特例，只是libcstl对于libcstl内建类型进行了默认的处理
+
+自定义数据类型使用例子
+使用自定义数据类型步骤如下：
+
+1.定义数据类型
+2.定义与该数据类型相对应的初始函数，拷贝，比较函数，销毁函数
+3.使用type_register(user_t, user_init, user_copy, user_less, user_destroy);注册
+4.创建容器
+5.初始化容器
+6.操作容器
+7.销毁容器
+
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <cstl/clist.h>
+
+#define N_MAX  29
+
+typedef unsigned char   uint8_t;
+typedef unsigned short  uint16_t;
+typedef unsigned int    uint32_t;
+
+typedef struct{
+    uint8_t  id;
+    uint8_t  age;
+    uint8_t  sex;
+    char     name[N_MAX];
+
+}user_t;
+
+
+static void _user_init(const void *cpv_input, void *pv_output)
+{
+    user_t * user_input = (user_t *)cpv_input;
+    memset(user_input, 0, sizeof(user_t));
+    *(bool_t *)pv_output = true;
+}
+
+static void _user_destroy(const void *cpv_input, void *pv_output)
+{
+    user_t * user_input = (user_t *)cpv_input;
+    memset(user_input, 0, sizeof(user_t));
+    *(bool_t *)pv_output = true;
+}
+
+static void _user_copy(const void *cpv_first, const void *cpv_second, void *pv_output)
+{
+    user_t *user_1 = (user_t *)cpv_first;
+    user_t *user_2 = (user_t *)cpv_second;
+    user_1->id = user_2->id;
+    user_1->age = user_2->age;
+    user_1->sex = user_2->sex;
+    strncpy(user_1->name, user_2->name, N_MAX);
+    *(bool_t *)pv_output = true;
+
+}
+
+static void _user_less(const void *cpv_first, const void *cpv_second, void *pv_output)
+{
+    if (((user_t *)cpv_first)->id < ((user_t *)cpv_second)->id){
+        *(bool_t *)pv_output = true;
+    }else{
+        *(bool_t *)pv_output = false;
+    }
+}
+
+void list_travel_by_iter(list_t *pt_list)
+{
+    iterator_t iter;
+    user_t user;
+    if (pt_list == NULL){
+        fprintf(stderr, "[travel_inter]:list is null.\n");
+        return;
+    }
+    printf("------------使用迭代器遍历 ------------\n");
+    printf("Id\t   Name   \tAge\tSex\t\n");
+    for (iter = list_begin(pt_list); !iterator_equal(iter, list_end(pt_list)); iter = iterator_next(iter)){
+        iterator_get_value(iter, &user);
+        printf("%u\t %s \t% u\t %c\n", user.id, user.name, user.age, user.sex?'m':'f');
+    }
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{   
+    list_t *pt_list = NULL;
+    size_t index;
+    user_t user_obj[] = {{134, 57, 1, "steven jobs"}, 
+                         {110, 50, 1, "bill gates"}, 
+                         {85, 52, 0, "alex martelli"}, 
+                         {220, 30, 0, "michel wood"}, 
+                         {24, 72, 1, "bob green"}, 
+                         {102, 29, 1, "devil cash"}};
+
+    type_register(user_t, _user_init, _user_copy, _user_less, _user_destroy);
+    
+    pt_list = create_list(user_t);
+    if (pt_list == NULL){
+       fprintf(stderr, "create list is failed.\n");
+       return -1;
+    }
+
+    list_init(pt_list);
+
+    for (index = 0; index < 6; index++){
+        list_push_back(pt_list, &user_obj[index]);
+    }
+    printf("before sorting\n");
+    list_travel_by_iter(pt_list);
+
+    list_sort(pt_list);
+    
+    printf("after sorting\n");
+    list_travel_by_iter(pt_list);
+    
+    list_destroy(pt_list);
+
+    return 0;
+}
+编译
+
+gcc -o test_list test_list.c -I/root/libcstl/lib/include/ -L/root/libcstl/lib/lib/ -lcstl
+运行结果如下：
+
+before sorting
+------------使用迭代器遍历 ------------
+Id         Name         Age     Sex
+134      steven jobs    57       m
+110      bill gates     50       m
+85       alex martelli  52       f
+220      michel wood    30       f
+24       bob green      72       m
+102      devil cash     29       m
+
+after sorting
+------------使用迭代器遍历 ------------
+Id         Name         Age     Sex
+24       bob green      72       m
+85       alex martelli  52       f
+102      devil cash     29       m
+110      bill gates     50       m
+134      steven jobs    57       m
+220      michel wood    30       f
+
+
