@@ -1,0 +1,472 @@
+<html>
+<body>
+<table border="1" cellspacing="0" cellpadding="0" width="612">
+<tbody>
+<tr>
+<td>
+<p align="center"><strong>优先级</strong></p></td>
+<td>
+<p align="center"><strong>运算符</strong></p></td>
+<td>
+<p align="center"><strong>名称或含义</strong></p></td>
+<td>
+<p align="center"><strong>使用形式</strong></p></td>
+<td>
+<p align="center"><strong>结合方向</strong></p></td>
+<td>
+<p align="center"><strong>说明</strong></p></td></tr>
+<tr>
+<td rowspan="4">
+<p align="center"><strong>1</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">[]</span></strong></p></td>
+<td>
+<p>数组下标</p></td>
+<td>
+<p>数组名[常量表达式]</p></td>
+<td rowspan="4">
+<p align="center">左到右</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">()</span></strong></p></td>
+<td>
+<p>圆括号</p></td>
+<td>
+<p>(表达式）/函数名(形参表)</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">.</span></strong></p></td>
+<td>
+<p>成员选择（对象）</p></td>
+<td>
+<p>对象.成员名</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">-&gt;</span></strong></p></td>
+<td>
+<p>成员选择（指针）</p></td>
+<td>
+<p>对象指针-&gt;成员名</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td rowspan="9">
+<p align="center"><strong>2</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">-</span></strong></p></td>
+<td>
+<p>负号运算符</p></td>
+<td>
+<p>-表达式</p></td>
+<td rowspan="9">
+<p align="center"><strong><span style="COLOR: red">右到左</span></strong></p></td>
+<td rowspan="7">
+<p align="center">单目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">~</span></strong></p></td>
+<td>
+<p>按位取反运算符</p></td>
+<td>
+<p>~表达式</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">++</span></strong></p></td>
+<td>
+<p>自增运算符</p></td>
+<td>
+<p>++变量名/变量名++</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">--</span></strong></p></td>
+<td>
+<p>自减运算符</p></td>
+<td>
+<p>--变量名/变量名--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">*</span></strong></p></td>
+<td>
+<p>取值运算符</p></td>
+<td>
+<p>*指针变量</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&amp;</span></strong></p></td>
+<td>
+<p>取地址运算符</p></td>
+<td>
+<p>&amp;变量名</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">!</span></strong></p></td>
+<td>
+<p>逻辑非运算符</p></td>
+<td>
+<p>!表达式</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">(</span><span style="COLOR: blue">类型</span><span style="COLOR: blue">)</span></strong></p></td>
+<td>
+<p>强制类型转换</p></td>
+<td>
+<p>(数据类型)表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">sizeof</span></strong></p></td>
+<td>
+<p>长度运算符</p></td>
+<td>
+<p>sizeof(表达式)</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td rowspan="3">
+<p align="center"><strong>3</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">/</span></strong></p></td>
+<td>
+<p>除</p></td>
+<td>
+<p>表达式/表达式</p></td>
+<td rowspan="3">
+<p align="center">左到右</p></td>
+<td rowspan="3">
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">*</span></strong></p></td>
+<td>
+<p>乘</p></td>
+<td>
+<p>表达式*表达式</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">%</span></strong></p></td>
+<td>
+<p>余数（取模）</p></td>
+<td>
+<p>整型表达式%整型表达式</p></td></tr>
+<tr>
+<td rowspan="2">
+<p align="center"><strong>4</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">+</span></strong></p></td>
+<td>
+<p>加</p></td>
+<td>
+<p>表达式+表达式</p></td>
+<td rowspan="2">
+<p align="center">左到右</p></td>
+<td rowspan="2">
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">-</span></strong></p></td>
+<td>
+<p>减</p></td>
+<td>
+<p>表达式-表达式</p></td></tr>
+<tr>
+<td rowspan="2">
+<p align="center"><strong>5</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&lt;&lt;&nbsp;</span></strong></p></td>
+<td>
+<p>左移</p></td>
+<td>
+<p>变量&lt;&lt;表达式</p></td>
+<td rowspan="2">
+<p align="center">左到右</p></td>
+<td rowspan="2">
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&gt;&gt;&nbsp; </span></strong></p></td>
+<td>
+<p>右移</p></td>
+<td>
+<p>变量&gt;&gt;表达式</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td rowspan="4">
+<p align="center"><strong>6</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&gt;&nbsp;</span></strong></p></td>
+<td>
+<p>大于</p></td>
+<td>
+<p>表达式&gt;表达式</p></td>
+<td rowspan="4">
+<p align="center">左到右</p></td>
+<td rowspan="4">
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&gt;=</span></strong></p></td>
+<td>
+<p>大于等于</p></td>
+<td>
+<p>表达式&gt;=表达式</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&lt;&nbsp;</span></strong></p></td>
+<td>
+<p>小于</p></td>
+<td>
+<p>表达式&lt;表达式</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&lt;=</span></strong></p></td>
+<td>
+<p>小于等于</p></td>
+<td>
+<p>表达式&lt;=表达式</p></td></tr>
+<tr>
+<td rowspan="2">
+<p align="center"><strong>7</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">==</span></strong></p></td>
+<td>
+<p>等于</p></td>
+<td>
+<p>表达式==表达式</p></td>
+<td rowspan="2">
+<p align="center">左到右</p></td>
+<td rowspan="2">
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">！</span><span style="COLOR: blue">=</span></strong></p></td>
+<td>
+<p>不等于</p></td>
+<td>
+<p>表达式!= 表达式</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>8</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&amp;</span></strong></p></td>
+<td>
+<p>按位与</p></td>
+<td>
+<p>表达式&amp;表达式</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>9</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">^</span></strong></p></td>
+<td>
+<p>按位异或</p></td>
+<td>
+<p>表达式^表达式</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>10</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">|</span></strong></p></td>
+<td>
+<p>按位或</p></td>
+<td>
+<p>表达式|表达式</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>11</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&amp;&amp;</span></strong></p></td>
+<td>
+<p>逻辑与</p></td>
+<td>
+<p>表达式&amp;&amp;表达式</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>12</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">||</span></strong></p></td>
+<td>
+<p>逻辑或</p></td>
+<td>
+<p>表达式||表达式</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">双目运算符</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>13</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">?:</span></strong></p></td>
+<td>
+<p>条件运算符</p></td>
+<td>
+<p>表达式1? </p>
+<p>表达式2: 表达式3</p></td>
+<td>
+<p align="center"><strong><span style="COLOR: red">右到左</span></strong></p></td>
+<td>
+<p align="center"><span style="COLOR: red">三目运算符</span></p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p><span style="COLOR: red"></span>&nbsp;</p></td></tr>
+<tr>
+<td rowspan="11">
+<p align="center"><strong>14</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">=</span></strong></p></td>
+<td>
+<p>赋值运算符</p></td>
+<td>
+<p>变量=表达式</p></td>
+<td rowspan="11">
+<p align="center"><strong><span style="COLOR: red">右到左</span></strong></p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">/=</span></strong></p></td>
+<td>
+<p>除后赋值</p></td>
+<td>
+<p>变量/=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">*=</span></strong></p></td>
+<td>
+<p>乘后赋值</p></td>
+<td>
+<p>变量*=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">%=</span></strong></p></td>
+<td>
+<p>取模后赋值</p></td>
+<td>
+<p>变量%=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">+=</span></strong></p></td>
+<td>
+<p>加后赋值</p></td>
+<td>
+<p>变量+=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">-=</span></strong></p></td>
+<td>
+<p>减后赋值</p></td>
+<td>
+<p>变量-=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&lt;&lt;=</span></strong></p></td>
+<td>
+<p>左移后赋值</p></td>
+<td>
+<p>变量&lt;&lt;=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&gt;&gt;=</span></strong></p></td>
+<td>
+<p>右移后赋值</p></td>
+<td>
+<p>变量&gt;&gt;=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">&amp;=</span></strong></p></td>
+<td>
+<p>按位与后赋值</p></td>
+<td>
+<p>变量&amp;=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">^=</span></strong></p></td>
+<td>
+<p>按位异或后赋值</p></td>
+<td>
+<p>变量^=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong><span style="COLOR: blue">|=</span></strong></p></td>
+<td>
+<p>按位或后赋值</p></td>
+<td>
+<p>变量|=表达式</p></td>
+<td>
+<p align="center">--</p></td></tr>
+<tr>
+<td width="612" colspan="6">
+<p>&nbsp;</p></td></tr>
+<tr>
+<td>
+<p align="center"><strong>15</strong></p></td>
+<td>
+<p align="center"><strong><span style="COLOR: blue">，</span></strong></p></td>
+<td>
+<p>逗号运算符</p></td>
+<td>
+<p>表达式,表达式,…</p></td>
+<td>
+<p align="center">左到右</p></td>
+<td>
+<p align="center">--</p></td></tr></tbody></table>
+
+<p><strong><span style="COLOR: #ff0000; FONT-SIZE: 14px">说明：<br></span></strong><span style="FONT-SIZE: 14px"><strong><span style="COLOR: #3333ff">同一优先级的运算符，运算次序由结合方向所决定。</span><br><span style="COLOR: #3333ff">简单记就是：！ &gt; 算术运算符 &gt; 关系运算符 &gt; &amp;&amp; &gt; || &gt; 赋值运算符</span></strong></span></p>
+
+</body>
+</html>

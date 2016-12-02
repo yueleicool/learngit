@@ -1,0 +1,111 @@
+C指针函数与函数指针
+http://hzy3774.iteye.com/blog/1833171
+
+指针函数一般是指返回指针的函数；
+C代码  收藏代码
+#include <stdio.h>  
+  
+int* fun(int *a)  
+{  
+    return a;  
+}  
+  
+int main(int argc, char **argv)  
+{  
+    int a = 3;  
+    printf("%d", *(fun(&a)));  
+    return 0;  
+}  
+ 
+函数指针是表示指向函数开始地址的指针：
+首先要了解函数的调用过程：
+C代码  收藏代码
+#include <stdio.h>  
+  
+int fun(int i)  
+{  
+    return i + 1;  
+}  
+  
+int main(int argc, char **argv)  
+{  
+    int r;  
+    //r = fun(5);  
+    r = (*fun)(5);      //调用方式  
+    printf("%d\n", r);  
+    return 0;  
+}  
+  函数可以用r = (*fun)(5);来调用，说明函数名其实是一个指针，
+通过（*fun）来寻址。所以我们就可以定义一个指针
+C代码  收藏代码
+#include <stdio.h>  
+  
+int fun(int i)  
+{  
+    return i + 1;  
+}  
+  
+int main(int argc, char **argv)  
+{  
+    int r;  
+    int (*funP)(int);   //声明指针  
+    //funP = fun;       //给指针赋值  
+    funP = &fun;  
+    r = funP(5);  
+    printf("%d\n", r);  
+    return 0;  
+}  
+ 
+所以，给函数指针赋值也有两种方式；
+同样，通过函数指针调用函数的方式也有两种：
+C代码  收藏代码
+#include <stdio.h>  
+  
+int fun(int i)  
+{  
+    return i + 1;  
+}  
+  
+int main(int argc, char **argv)  
+{  
+    int r;  
+    int (*funP)(int);   //声明指针  
+    funP = fun;     //给指针赋值  
+    //r = funP(5);  
+    r = (*funP)(5);     //调用  
+    printf("%d\n", r);  
+    return 0;  
+}  
+ 也就是说，除了声明的地方，fun()与(*fun)()的作用是一样的。
+这样，也就让C语言容易实现类似于回调函数的结构：
+C代码  收藏代码
+#include <stdio.h>  
+  
+int funA(int i)  
+{  
+    return i + 1;  
+}  
+  
+int funB(int i)  
+{  
+    return i - 1;  
+}  
+  
+void fun(int (*funP)(int), int i)  
+{  
+    printf("%d\n", funP(i));  
+}  
+  
+int main(int argc, char **argv)  
+{  
+    int (*funP)(int);   //声明指针  
+    funP = funA;        //给指针赋值  
+    //funP = funB;      //给指针赋值  
+  
+    fun(funP, 5);       //调用  
+    return 0;  
+}  
+ 在fun()函数里，它做的只是在某个时候调用一个funP指针指向的函数，至于是哪个函数，在fun函数的定义处还无从得知；直到将funA赋给函数指针funP，funP具体要做什么功能，才得以确定。
+也就是说，main函数决定fun函数需要帮它实现什么函数代码，但是fun何时调用以及是否调用main给他的函数，那是由fun（）来决定。
+
+
