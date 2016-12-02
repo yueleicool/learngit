@@ -1,0 +1,30 @@
+C语言计算字符串长度的几种方法
+http://blog.csdn.net/ljss321/article/details/51195125
+
+语言计算字符串长度，可以手动计算也可以使用库函数或者sizeof()操作符。
+
+自定义函数求长度
+使用strlen()函数
+使用sizeof()操作符
+自定义函数
+
+int cont_str(char *s)
+{
+    int i = 0;      
+    while ( str[i++] ！= '\0')
+        ;
+    return i;
+}
+使用string头文件中的strlen()函数
+
+strlen(str); //假设str为待求的字符串数组名
+使用sizeof()操作符
+
+sizeof(str)/sizeof(str[0]); //假设str为待求的字符串数组名
+注意：
+
+strlen()函数求出的字符串长度为有效长度，既不包含字符串末尾结束符 ‘\0’；
+sizeof()操作符求出的长度包含字符串末尾的结束符 ‘\0’；
+当在函数内部使用sizeof()求解由函数的形参传入的字符数组的长度时，得到的结果为指针的长度，既对应变量的字节数，而不是字符串的长度，此处一定要小心。【1】
+
+
