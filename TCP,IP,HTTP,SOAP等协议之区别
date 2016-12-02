@@ -1,0 +1,20 @@
+TCP/IP,HTTP,SOAP等协议之区别
+http://www.cnblogs.com/rosesmall/archive/2012/04/09/2439657.html
+
+术语TCP/IP代表传输控制协议/网际协议，指的是一系列协议。“IP”代表网际协议，TCP和UDP使用该协议从一个网络传送数据包到另一个网络。把IP想像成一种高速公路，它允许其它协议在上面行驶并找到到其它电脑的出口。TCP和UDP是高速公路上的“卡车”，它们携带的货物就是像HTTP，文件传输协议FTP这样的协议等。 
+    你应该能理解，TCP和UDP是FTP，HTTP和SMTP之类使用的传输层协议。虽然TCP和UDP都是用来传输其他协议的，它们却有一个显著的不同：TCP提供有保证的数据传输，而UDP不提供。这意味着TCP有一个特殊的机制来确保数据安全的不出错的从一个端点传到另一个端点，而UDP不提供任何这样的保证。
+    HTTP(超文本传输协议)是利用TCP在两台电脑(通常是Web服务器和客户端)之间传输信息的协议。客户端使用Web浏览器发起HTTP请求给Web服务器，Web服务器发送被请求的信息给客户端。
+SOAP(Simple Object Access Protocal，简单对象访问协议) 技术有助于实现大量异构程序和平台之间的互操作性,根据我有限的了解，SOAP是把成熟的基于HTTP的WEB技术与XML的灵活性和可扩展性组合在了一起。比如我们.NET中的WEB服务，就是基于SOAP。
+    记住，需要IP协议来连接网络;TCP是一种允许我们安全传输数据的机制，使用TCP协议来传输数据的HTTP是Web服务器和客户端使用的特殊协议。
+ 
+下面的图表试图显示不同的TCP/IP和其他的协议在最初OSI模型中的位置：
+
+7	应用层	例如HTTP、SMTP、SNMP、FTP、Telnet、SIP、SSH、NFS、RTSP、XMPP、Whois、ENRP
+6	表示层	例如XDR、ASN.1、SMB、AFP、NCP
+5	会话层	例如ASAP、TLS、SSH、ISO 8327 / CCITT X.225、RPC、NetBIOS、ASP、Winsock、BSD sockets
+4	传输层	例如TCP、UDP、RTP、SCTP、SPX、ATP、IL
+3	网络层	例如IP、ICMP、IGMP、IPX、BGP、OSPF、RIP、IGRP、EIGRP、ARP、RARP、 X.25
+2	数据链路层	例如以太网、令牌环、HDLC、帧中继、ISDN、ATM、IEEE 802.11、FDDI、PPP
+1	物理层	例如线路、无线电、光纤、信鸽
+
+

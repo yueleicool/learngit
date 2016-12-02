@@ -1,0 +1,132 @@
+C语言中的字符串截取函数及应用
+http://www.cnblogs.com/rosesmall/archive/2012/03/27/2420335.html
+
+/*========================================================
+
+对于一个五位数a1a2a3a4a5，可将其拆分为三个子数：
+sub1=a1a2a3
+sub2=a2a3a4
+sub3=a3a4a5
+例如，五位数20207可以拆分成
+sub1=202
+sub2=020（=20）
+sub3=207
+现在给定一个正整数K，要求你编程求出10000到30000之间所有满足下述条件的五位数，
+条件是这些五位数的三个子数sub1，sub2，sub3都可被K整除。
+输入
+输入由键盘输入，输入仅一行，为正整数K（0<K<1000）。
+输出
+输出到文件，输出文件的每一行为一个满足条件的五位数，要求从小到大输出。
+不得重复输出或遗漏。如果无解，则输出“No”。
+
+样例
+num.in
+15
+num.out
+22555
+25555
+28555
+30000
+
+==========================================================*/
+
+
+#include <stdio.h>
+#include <string.h>
+
+/*从字符串的左边截取n个字符*/
+char * left(char *dst,char *src, int n)
+{
+    char *p = src;
+    char *q = dst;
+    int len = strlen(src);
+    if(n>len) n = len;
+    /*p += (len-n);*/   /*从右边第n个字符开始*/
+    while(n--) *(q++) = *(p++);
+    *(q++)='\0'; /*有必要吗？很有必要*/
+    return dst;
+}
+
+/*从字符串的中间截取n个字符*/
+char * mid(char *dst,char *src, int n,int m) /*n为长度，m为位置*/
+{
+    char *p = src;
+    char *q = dst;
+    int len = strlen(src);
+    if(n>len) n = len-m;    /*从第m个到最后*/
+    if(m<0) m=0;    /*从第一个开始*/
+    if(m>len) return NULL;
+    p += m;
+    while(n--) *(q++) = *(p++);
+    *(q++)='\0'; /*有必要吗？很有必要*/
+    return dst;
+}
+
+/*从字符串的右边截取n个字符*/
+char * right(char *dst,char *src, int n)
+{
+    char *p = src;
+    char *q = dst;
+    int len = strlen(src);
+    if(n>len) n = len;
+    p += (len-n);   /*从右边第n个字符开始*/
+    while(*(q++) = *(p++));
+    return dst;
+}
+
+void main()
+{
+    FILE * p;
+    int i,k,outi,count=0;
+    int sub1,sub2,sub3;
+    char *strsub1,*strsub2,*strsub3,*strtempnum,*a,*b,*c;
+
+    if((p = fopen("num.out", "ab+")) == NULL)
+    {
+        printf("open file fail!");
+        getch();
+        exit();
+    }
+    printf("Please input int number(0<K<1000):");
+    scanf("%d",&k);
+
+    for(outi=10000;outi<=30000;outi++)
+    {
+        itoa(outi,strtempnum,10);
+
+        left(strsub1,strtempnum,3);
+        mid(strsub2,strtempnum,3,1);
+        right(strsub3,strtempnum,3);
+
+        /*
+        a=strsub1;
+        b=strsub2;
+        c=strsub3;
+        printf("strsub1=%s,strsub2=%s,strsub3=%s\n",a,b,c);
+        */
+
+        sub1=atoi(strsub1);
+        sub2=atoi(strsub2);
+        sub3=atoi(strsub3);
+
+        /*
+        printf("sub1=%d , sub2=%d , sub3=%d \n\n",sub1,sub2,sub3);
+        printf("sub1k=%d , sub2k=%d , sub3k=%d \n\n" , sub1 % k,sub2 % k,sub3 % k);
+        getch();
+        */
+        if((sub1%k)==0 && (sub2%k)==0 && (sub3%k)==0)
+        {
+            fprintf(p,"%d\n",outi);
+            count++;
+            printf("outi=%d\n",outi);
+        }
+        else
+        {
+            fprintf(p,"%s\n","NO");
+        }
+    }
+    printf("Count=%d    OK",count);
+    fclose(p);
+    getch();
+}
+

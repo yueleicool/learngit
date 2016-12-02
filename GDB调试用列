@@ -1,0 +1,102 @@
+GDB调试用列
+http://www.cnblogs.com/rosesmall/archive/2012/04/13/2445547.html
+
+gdb -args ./Recvor -P 7000 -C ../server.conf -M true -D   带参数的调试
+
+GNU gdb (GDB) Red Hat Enterprise Linux (7.0.1-32.el5)
+Copyright (C) 2009 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law. Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>...
+Reading symbols from /home/yan.liu/code/Cloud/cloud/bin/Recvor...done.
+(gdb) r
+Starting program: /home/yan.liu/code/Cloud/cloud/bin/Recvor -P 7000 -C ../server.conf -M true -D ture
+[Thread debugging using libthread_db enabled]
+Local Addr List:
+127.0.0.1
+127.0.0.1
+
+ 设置断点
+
+ 
+
+Program received signal SIGINT, Interrupt.
+0x0000003157acd722 in select () from /lib64/libc.so.6
+(gdb) break TCPEventHandler.cpp:59
+Breakpoint 1 at 0x410681: file TCPEventHandler.cpp, line 59.
+(gdb) break TCPEventHandler.cpp:153
+Breakpoint 2 at 0x410573: file TCPEventHandler.cpp, line 153.
+(gdb) break TCPServer.cpp:99
+Breakpoint 3 at 0x40d42c: file TCPServer.cpp, line 99.
+(gdb) break UserData.cpp:49
+Breakpoint 4 at 0x40a5f2: file UserData.cpp, line 49.
+(gdb) break UserData.cpp:49:92
+No source file named UserData.cpp:49.
+Make breakpoint pending on future shared library load? (y or [n]) y
+
+Breakpoint 5 (UserData.cpp:49:92) pending.
+(gdb) break UserData.cpp:92
+Breakpoint 6 at 0x40a78e: file UserData.cpp, line 92.
+(gdb) break UserData.cpp:128
+Breakpoint 7 at 0x40aa12: file UserData.cpp, line 128.
+
+gdb) break TCPEventHandler.cpp:59
+Note: breakpoint 1 also set at pc 0x410681.
+Breakpoint 8 at 0x410681: file TCPEventHandler.cpp, line 59.
+(gdb) c
+Continuing.
+
+ 
+
+
+查看设置的断点
+(gdb) info break
+Num Type Disp Enb Address What
+1 breakpoint keep y 0x0000000000410681 in TCPEventHandler::handle_input(ACE_HANDLE) at TCPEventHandler.cpp:59
+2 breakpoint keep y 0x0000000000410573 in TCPEventHandler::handle_exception(ACE_HANDLE) at TCPEventHandler.cpp:153
+3 breakpoint keep y 0x000000000040d42c in TCPServer::handle_timeout(ACE_Time_Value const&, void const*) at TCPServer.cpp:99
+4 breakpoint keep y 0x000000000040a5f2 in UserData::Process(IDataRecvor*) at UserData.cpp:49
+5 breakpoint keep y <PENDING> UserData.cpp:49:92
+6 breakpoint keep y 0x000000000040a78e in UserData::Process(IDataRecvor*) at UserData.cpp:92
+7 breakpoint keep y 0x000000000040aa12 in UserData::Process(IDataRecvor*) at UserData.cpp:128
+8 breakpoint keep y 0x0000000000410681 in TCPEventHandler::handle_input(ACE_HANDLE) at TCPEventHandler.cpp:59
+
+ 
+
+删除断点
+
+gdb) delete 8
+(gdb) info break
+Num Type Disp Enb Address What
+1 breakpoint keep y 0x0000000000410681 in TCPEventHandler::handle_input(ACE_HANDLE) at TCPEventHandler.cpp:59
+2 breakpoint keep y 0x0000000000410573 in TCPEventHandler::handle_exception(ACE_HANDLE) at TCPEventHandler.cpp:153
+3 breakpoint keep y 0x000000000040d42c in TCPServer::handle_timeout(ACE_Time_Value const&, void const*) at TCPServer.cpp:99
+4 breakpoint keep y 0x000000000040a5f2 in UserData::Process(IDataRecvor*) at UserData.cpp:49
+5 breakpoint keep y <PENDING> UserData.cpp:49:92
+6 breakpoint keep y 0x000000000040a78e in UserData::Process(IDataRecvor*) at UserData.cpp:92
+7 breakpoint keep y 0x000000000040aa12 in UserData::Process(IDataRecvor*) at UserData.cpp:128
+
+ 
+
+gdb) c
+Continuing.
+[Switching to Thread 0x40a00940 (LWP 15454)]
+
+Breakpoint 4, UserData::Process (this=0x7291d0, pRecvor=0x2aaaac12b800)
+at UserData.cpp:51
+51 UpdateTime();
+(gdb) n
+55 while(msg=GetMsg()){
+(gdb) n
+56 type=msg->GetType();
+
+(gdb) display type
+2: type = COMMAD
+(gdb) c
+Continuing.
+
+

@@ -1,0 +1,94 @@
+Linux gdb设置和管理断点
+
+http://www.cnblogs.com/rosesmall/archive/2012/04/13/2445527.html
+
+1.以行号设置断点
+
+   (gdb)break 7
+
+   (gdb)run
+
+2.以函数名设置断点
+
+(gdb)break function_name
+
+(gdb)run
+
+3.以条件表达式设置断点
+
+(gdb)break 7 if i==99
+
+(gdb)run
+
+4.另一种，以表达式设置断点的方法
+
+   (gdb)watch i==99
+
+   这个命令必须在变量i被定义之后才会成功运行，为了解决这个问题，首先在变量 i 被定义的后一行设置中断，然后使用run命令运行程序，程序暂停后就可以使用watch i==99设置断点了。
+
+##############################
+
+单步执行
+
+(gdb)next
+
+#############################
+
+查看当前设置的断点信息
+
+(gdb)info breakpoints
+
+
+###############################
+
+使中断失效(断点仍然存在)或有效
+
+(gdb)info breakpoints
+
+(gdb)disable b_id           //使中断失效，b_id 为中断编号
+
+(gdb)info breakpoints
+
+(gdb)enable b_id         //使中断有效，b_id 为中断编号
+
+(gdb)info breakpoints
+
+##############################
+
+删除断点
+
+clear : 删除程序中所有的断点
+
+clear 行号 : 删除这行的断点
+
+clear 函数名 : 删除该函数的断点
+
+delete b_id1 b_id2 ... : 删除指定编号的断点
+
+##################################
+
+查看和设置变量值
+
+1.print命令
+
+    print 变量或表达式：打印变量或表达式当前的值。
+
+    print 变量=值：对变量进行赋值。
+
+    print 表达式@要打印的值的个数n：打印以表达式开始的n个数
+
+2.whatis命令：显示某个变量或表达式值的数据类型
+
+   whatis 变量或表达式
+
+   例子：
+
+             
+
+3.set命令：给变量赋值
+
+        set variable 变量=值
+
+       【提示】set命令还可以针对远程调试进行设置，可以用来设置gdb一行的字符数等。
+
+

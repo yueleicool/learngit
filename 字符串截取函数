@@ -1,0 +1,20 @@
+字符串截取函数
+http://www.cnblogs.com/rosesmall/archive/2012/03/27/2420270.html
+
+#include "stdio.h"
+void strcut(char *s, char *sub,int m, int n) //用参数sub来保存结果，所以函数不用返回值了
+{
+int i;
+for (i=0;i<n;i++)
+sub[i]=s[m+i-1];
+sub[i]='\0';
+}
+
+main()
+{char ps[20]; //用来保存截取子串的必须是数组，不能是指针
+static char s[]="goodmorning";
+strcut (s,ps,3,4);
+printf ("%s\n",ps);
+}
+
+
