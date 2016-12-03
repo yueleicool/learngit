@@ -1,0 +1,248 @@
+C结构struct 
+http://blog.chinaunix.net/uid-261392-id-2138972.html
+
+结构是由基本数据类型构成的、并用一个标识符来命名的各种变量的组合。 
+结构中可以使用不同的数据类型。
+    1. 结构说明和结构变量定义 
+    在Turbo C中, 结构也是一种数据类型, 可以使用结构变量, 因此,  象其它 
+类型的变量一样, 在使用结构变量时要先对其定义。 
+    定义结构变量的一般格式为: 
+     struct 结构名 
+     { 
+          类型  变量名; 
+          类型  变量名; 
+          ... 
+     } 结构变量; 
+    结构名是结构的标识符不是变量名。 
+    类型为第二节中所讲述的五种数据类型(整型、浮点型、字符型、 指针型和 
+无值型)。 
+    构成结构的每一个类型变量称为结构成员, 它象数组的元素一样, 但数组中 
+元素是以下标来访问的, 而结构是按变量名字来访问成员的。 
+    下面举一个例子来说明怎样定义结构变量。 
+     struct string 
+     { 
+          char name[8]; 
+          int age; 
+          char sex[2]; 
+          char depart[20]; 
+          float wage1, wage2, wage3, wage4, wage5; 
+     } person; 
+    这个例子定义了一个结构名为string的结构变量person,   如果省略变量名 
+person, 则变成对结构的说明。用已说明的结构名也可定义结构变量。这样定义 
+时上例变成: 
+     struct string 
+     { 
+          char name[8]; 
+          int age; 
+          char sex[2]; 
+          char depart[20]; 
+          float wage1, wage2, wage3, wage4, wage5; 
+     }; 
+     struct string person; 
+    如果需要定义多个具有相同形式的结构变量时用这种方法比较方便, 它先作 
+结构说明, 再用结构名来定义变量。 
+    例如: 
+     struct string Tianyr, Liuqi, ...; 
+    如果省略结构名, 则称之为无名结构, 这种情况常常出现在函数内部, 用这 
+种结构时前面的例子变成: 
+     struct 
+     { 
+          char name[8]; 
+          int age; 
+          char sex[2]; 
+          char depart[20]; 
+          float wage1, wage2, wage3, wage4, wage5; 
+     } Tianyr, Liuqi;
+    2. 结构变量的使用 
+    结构是一个新的数据类型, 因此结构变量也可以象其它类型的变量一样赋值、 
+运算, 不同的是结构变量以成员作为基本变量。 
+    结构成员的表示方式为: 
+          结构变量.成员名 
+    如果将"结构变量.成员名"看成一个整体,  则这个整体的数据类型与结构中 
+该成员的数据类型相同, 这样就可象前面所讲的变量那样使用。 
+    下面这个例子定义了一个结构变量, 其中每个成员都从键盘接收数据, 然后 
+对结构中的浮点数求和, 并显示运算结果, 同时将数据以文本方式存入一个名为 
+wage.dat的磁盘文件中。请注意这个例子中不同结构成员的访问。 
+    例3: 
+     #include 
+     main() 
+     { 
+          struct{                  /*定义一个结构变量*/ 
+               char name[8]; 
+               int age; 
+               char sex[2]; 
+               char depart[20]; 
+               float wage1, wage2, wage3, wage4, wage5; 
+          }a; 
+          FILE *fp; 
+          float wage; 
+          char c="Y"; 
+          fp=fopen("wage.dat", "w");    /*创建一个文件只写*/ 
+          while(c=="Y"||c=="y")         /*判断是否继续循环*/ 
+          { 
+               printf(" Name:"); 
+               scanf("%s", a.name);     /*输入姓名*/ 
+               printf("Age:"); 
+               scanf("%d", &a.wage);    /*输入年龄*/ 
+               printf("Sex:"); 
+               scanf("%d", a.sex); 
+               printf("Dept:"); 
+               scanf("%s", a.depart); 
+               printf("Wage1:"); 
+               scanf("%f", &a.wage1);   /*输入工资*/ 
+               printf("Wage2:"); 
+               scanf("%f", &a.wage2); 
+               printf("Wage3:"); 
+               scanf("%f", &a.wage3); 
+               printf("Wage4:"); 
+               scanf("%f", &a.wage4); 
+               printf("Wage5:"); 
+               scanf("%f", &a.wage5); 
+               wage=a.wage1+a.wage2+a.wage3+a.wage4+a.wage5; 
+               printf("The sum of wage is %6.2f ", wage);/*显示结果*/ 
+               fprintf(fp, "%10s%4d%4s%30s%10.2f ",  /*结果写入文件*/ 
+                            a.name, a.age, a.sex, a.depart, wage); 
+               while(1) 
+               { 
+                    printf("Continue?"); 
+                    c=getche(); 
+                    if(c=="Y"||c=="y"||c=="N"||c=="n") 
+                         break; 
+               } 
+          } 
+          fclose(fp); 
+     }
+    3. 结构数组和结构指针 
+    结构是一种新的数据类型, 同样可以有结构数组和结构指针。 
+    一、结构数组 
+    结构数组就是具有相同结构类型的变量集合。假如要定义一个班级40个同学 
+的姓名、性别、年龄和住址, 可以定义成一个结构数组。如下所示: 
+     struct{ 
+          char name[8]; 
+          char sex[2]; 
+          int age; 
+          char addr[40]; 
+     }student[40]; 
+    也可定义为: 
+     struct string{ 
+          char name[8]; 
+          char sex[2]; 
+          int age; 
+          char addr[40]; 
+     }; 
+     struct string student[40]; 
+    需要指出的是结构数组成员的访问是以数组元素为结构变量的, 其形式为: 
+          结构数组元素.成员名 
+    例如: 
+      student[0].name 
+      student[30].age 
+    实际上结构数组相当于一个二维构造, 第一维是结构数组元素, 每个元素是 
+一个结构变量, 第二维是结构成员。 
+    注意: 
+    结构数组的成员也可以是数组变量。 
+    例如: 
+     struct a 
+     { 
+          int m[3][5]; 
+          float f; 
+          char s[20]; 
+     }y[4]; 
+    为了访问结构a中结构变量y[2]的这个变量, 可写成 
+       y[2].m[1][4]
+    二、结构指针 
+    结构指针是指向结构的指针。它由一个加在结构变量名前的"*" 操作符来定 
+义, 例如用前面已说明的结构定义一个结构指针如下: 
+     struct string{ 
+          char name[8]; 
+          char sex[2]; 
+          int age; 
+          char addr[40]; 
+     }*student; 
+    也可省略结构指针名只作结构说明, 然后再用下面的语句定义结构指针。 
+      struct string *student; 
+    使用结构指针对结构成员的访问, 与结构变量对结构成员的访问在表达方式 
+上有所不同。结构指针对结构成员的访问表示为: 
+       结构指针名->结构成员 
+    其中"->"是两个符号"-"和">"的组合, 好象一个箭头指向结构成员。例如要 
+给上面定义的结构中name和age赋值, 可以用下面语句: 
+     strcpy(student->name, "Lu G.C"); 
+     student->age=18; 
+    实际上, student->name就是(*student).name的缩写形式。 
+    需要指出的是结构指针是指向结构的一个指针, 即结构中第一个成员的首地 
+址, 因此在使用之前应该对结构指针初始化, 即分配整个结构长度的字节空间, 
+这可用下面函数完成, 仍以上例来说明如下: 
+     student=(struct string*)malloc(size of (struct string)); 
+    size of (struct string)自动求取string结构的字节长度, malloc() 函数 
+定义了一个大小为结构长度的内存区域, 然后将其诈地址作为结构指针返回。
+    注意: 
+    1. 结构作为一种数据类型,  因此定义的结构变量或结构指针变量同样有局 
+部变量和全程变量, 视定义的位置而定。 
+    2. 结构变量名不是指向该结构的地址, 这与数组名的含义不同,  因此若需 
+要求结构中第一个成员的首地址应该是&[结构变量名]。 
+    4. 结构的复杂形式 
+    一、嵌套结构 
+    嵌套结构是指在一个结构成员中可以包括其它一个结构, Turbo C 允许这种 
+嵌套。 
+    例如: 下面是一个有嵌套的结构 
+     struct string{ 
+          char name[8]; 
+          int age; 
+          struct addr address; 
+     } student; 
+    其中: addr为另一个结构的结构名, 必须要先进行, 说明, 即 
+     struct addr{ 
+          char city[20]; 
+          unsigned lon zipcode; 
+          char tel[14]; 
+     } 
+    如果要给student结构中成员address结构中的zipcode赋值, 则可写成: 
+      student.address.zipcode=200001; 
+    每个结构成员名从最外层直到最内层逐个被列出, 即嵌套式结构成员的表达 
+方式是: 
+      结构变量名.嵌套结构变量名.结构成员名 
+    其中: 嵌套结构可以有很多, 结构成员名为最内层结构中不是结构的成员名。 
+  
+    二、位结构 
+    位结构是一种特殊的结构, 在需按位访问一个字节或字的多个位时, 位结构 
+比按位运算符更加方便。 
+    位结构定义的一般形式为: 
+     struct位结构名{ 
+          数据类型 变量名: 整型常数; 
+          数据类型 变量名: 整型常数; 
+     } 位结构变量; 
+    其中: 数据类型必须是int(unsigned或signed)。 整型常数必须是非负的整 
+数, 范围是0~15, 表示二进制位的个数, 即表示有多少位。 
+    变量名是选择项, 可以不命名, 这样规定是为了排列需要。 
+    例如: 下面定义了一个位结构。 
+     struct{ 
+          unsigned incon: 8;  /*incon占用低字节的0~7共8位*/ 
+          unsigned txcolor: 4;/*txcolor占用高字节的0~3位共4位*/ 
+          unsigned bgcolor: 3;/*bgcolor占用高字节的4~6位共3位*/ 
+          unsigned blink: 1;  /*blink占用高字节的第7位*/ 
+     }ch; 
+    位结构成员的访问与结构成员的访问相同。 
+    例如: 访问上例位结构中的bgcolor成员可写成: 
+      ch.bgcolor 
+  
+    注意: 
+    1. 位结构中的成员可以定义为unsigned, 也可定义为signed,  但当成员长 
+度为1时, 会被认为是unsigned类型。因为单个位不可能具有符号。 
+    2. 位结构中的成员不能使用数组和指针, 但位结构变量可以是数组和指针, 
+如果是指针, 其成员访问方式同结构指针。 
+    3. 位结构总长度(位数), 是各个位成员定义的位数之和,  可以超过两个字 
+节。 
+    4. 位结构成员可以与其它结构成员一起使用。 
+    例如: 
+     struct info{ 
+          char name[8]; 
+          int age; 
+          struct addr address; 
+          float pay; 
+          unsigned state: 1; 
+          unsigned pay: 1; 
+          }workers;" 
+    上例的结构定义了关于一个工从的信息。其中有两个位结构成员, 每个位结 
+构成员只有一位, 因此只占一个字节但保存了两个信息, 该字节中第一位表示工 
+人的状态, 第二位表示工资是否已发放。由此可见使用位结构可以节省存贮空间。
+
+
